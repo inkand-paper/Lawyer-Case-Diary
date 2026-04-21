@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --primary: #4f46e5;
+}
+
+[data-theme='dark'] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #6366f1;
+}
+
+[data-theme='blue'] {
+  --background: #0a1128;
+  --foreground: #e0e6ed;
+  --primary: #3b82f6;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.4);
+  border-radius: 10px;
+}
+
+/* selection */
+::selection {
+  background: rgba(79, 70, 229, 0.3);
+  color: #fff;
+}
+
+@utility shadow-glow {
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.2);
+}
+
+@utility rounded-4xl {
+  border-radius: 2rem;
+}
+
+@utility rounded-5xl {
+  border-radius: 2.5rem;
+}
+
+@utility glass {
+  background-color: var(--color-zinc-950) / 0.5;
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--color-white) / 0.05;
+}
+
+@utility glass-header {
+  background-color: var(--color-black) / 0.6;
+  backdrop-filter: blur(48px);
+  border-bottom: 1px solid var(--color-white) / 0.05;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
+/* Animations */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
