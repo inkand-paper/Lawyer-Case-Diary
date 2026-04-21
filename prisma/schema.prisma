@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("LAWYER")
+  clients       Client[]
+  cases         Case[]
+  reminders     Reminder[]
+  apiKeys       ApiKey[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  cases     Case[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Case {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id])
+  title       String
+  caseNumber  String
+  courtName   String
+  judgeName   String?
+  status      String    @default("ACTIVE") // ACTIVE, CLOSED
+  description String?
+  hearings    Hearing[]
+  notes       Note[]
+  payments    Payment[]
+  reminders   Reminder[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Hearing {
+  id           String   @id @default(uuid())
+  caseId       String
+  case         Case     @relation(fields: [caseId], references: [id])
+  hearingDate  DateTime
+  nextDate     DateTime?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  amount      Float
+  paymentDate DateTime
+  method      String?
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Reminder {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  caseId    String?
+  case      Case?    @relation(fields: [caseId], references: [id])
+  title     String
+  remindAt  DateTime
+  status    String   @default("PENDING") // PENDING, SENT, CANCELLED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  level     String   // INFO, WARN, ERROR
+  message   String
+  context   String?  // JSON string of request context
+  error     String?  // error stack or details
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  keyHash    String    @unique
+  name       String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
