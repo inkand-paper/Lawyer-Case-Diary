@@ -1,88 +1,121 @@
 "use client";
 
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { User, Bell, Search } from "lucide-react";
-import { ThemeGlider } from "@/components/dashboard/ThemeGlider";
-import { QuickCaseForm } from "@/components/dashboard/QuickCaseForm";
-import { BottomNav } from "@/components/dashboard/BottomNav";
-import { cn } from "@/lib/utils";
-
 /**
- * Professional Dashboard Layout
- * Enforces "Constant Shape" (rounded-[2.5rem]) and strict vertical alignment in the Header.
+ * ============================================================
+ * DashboardLayout — Optimized Professional Workspace
+ * ─────────────────────────────────────────────────────────────
+ * Adaptive architecture for desktop and mobile.
+ * Injects practitioners' identity and real-time alerts.
+ * Features:
+ *   - Responsive Sidebar (Desktop) / Bottom Nav (Mobile)
+ *   - Global Search Synchronization via SearchProvider
+ *   - High-fidelity Header with Notifications
+ * ============================================================
  */
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+
+import { useState, useEffect } from "react";
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { BottomNav } from "@/components/dashboard/BottomNav";
+import { Search, Shield, Zap, X } from "lucide-react";
+import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
+import { SearchProvider, useSearch } from "@/context/SearchContext";
+
+function HeaderContent() {
+  const [user, setUser] = useState<any>(null);
+  const { searchQuery, setSearchQuery } = useSearch();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/me");
+        const json = await res.json();
+        if (json.success) setUser(json.data);
+      } catch {}
+    };
+    fetchUser();
+  }, []);
+
   return (
-    <div className="flex bg-black min-h-screen selection:bg-indigo-500/30 font-inter overflow-x-hidden relative">
-      {/* Sidebar hidden on mobile */}
-      <div className="hidden lg:block shrink-0">
-        <Sidebar />
-      </div>
-      
-      <div className="flex-1 flex flex-col overflow-hidden py-0 lg:py-6 lg:pr-6 gap-6 relative">
-        {/* Main Content Area with Constant Shape Container */}
-        <div className="flex-1 flex flex-col bg-zinc-950/50 border-0 lg:border border-white/5 rounded-0 lg:rounded-[2.5rem] backdrop-blur-xl overflow-hidden relative shadow-2xl">
-          
-          {/* Header Internal to the Constant Shape Container */}
-          <header className="h-20 lg:h-24 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 relative z-40 bg-white/[0.01]">
-            {/* Standardized Search Bar with Proper Alignment */}
-            <div className={cn(
-              "hidden sm:flex items-center gap-4 bg-zinc-900/40 border border-white/5 px-6 py-3 rounded-2xl w-96 group transition-all focus-within:border-indigo-600/50 focus-within:bg-zinc-900/60"
-            )}>
-              <div className="w-5 flex justify-center items-center">
-                <Search className="w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search registry files..." 
-                className="bg-transparent border-none text-sm text-white focus:outline-none w-full placeholder:text-zinc-600 font-medium"
-              />
-            </div>
+    <header
+      className="h-20 sm:h-24 px-6 lg:px-12 flex items-center justify-between sticky top-0 z-[50] transition-all border-b"
+      style={{ background: "var(--background)", borderColor: "var(--border)" }}
+    >
+      {/* Identity & Search Section */}
+      <div className="flex items-center gap-6 lg:gap-12 flex-1">
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "var(--foreground)" }}>
+            <Shield className="w-5 h-5" style={{ color: "var(--background)" }} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--foreground)" }}>
+              {user?.name || "Practitioner"}
+            </span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--muted)" }}>
+              Verified Identity
+            </span>
+          </div>
+        </div>
 
-            <div className="flex items-center gap-4 lg:gap-8 ml-auto">
-              {/* Theme Switcher with Vertical Alignment */}
-              <div className="hidden md:flex items-center gap-2">
-                <ThemeGlider />
-              </div>
-              
-              {/* Notification Protocol */}
-              <button className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5 group">
-                <Bell className="w-5 h-5 text-zinc-500 group-hover:text-white transition-colors" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-black" />
-              </button>
-
-              {/* Professional User Access Unit */}
-              <div className="flex items-center gap-4 pl-4 lg:pl-8 border-l border-white/10">
-                <div className="hidden sm:block text-right">
-                  <p className="text-xs font-black text-white tracking-tight">Adv. Abir Ahmed</p>
-                  <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">Counselor</p>
-                </div>
-                <div className="w-10 lg:w-12 h-10 lg:h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-900 flex items-center justify-center border border-white/10 shadow-lg group hover:scale-105 transition-transform cursor-pointer">
-                  <User className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Unified Content main area */}
-          <main className="flex-1 overflow-y-auto p-6 lg:p-12 pb-32 lg:pb-12 custom-scrollbar">
-            {children}
-          </main>
-
-          {/* Procedural Live Testing UI */}
-          <QuickCaseForm onCaseCreated={() => { window.location.reload(); }} />
-
-          {/* Mobile Bottom Navigation Access */}
-          <BottomNav />
-
-          {/* Decorative Corner Glow */}
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-600/5 blur-[120px] pointer-events-none rounded-full" />
+        {/* Global Registry Search */}
+        <div className="relative flex-1 max-w-md group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors group-focus-within:text-foreground" style={{ color: "var(--muted)" }} />
+          <input
+            type="text"
+            placeholder="Quick registry search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-11 lg:h-12 rounded-2xl pl-12 pr-10 text-xs font-bold focus:outline-none transition-all"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-[var(--surface-2)]"
+            >
+              <X className="w-3 h-3" style={{ color: "var(--muted)" }} />
+            </button>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* Action Hub */}
+      <div className="flex items-center gap-3 lg:gap-4 ml-4">
+        <div className="hidden sm:flex flex-col items-end">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--foreground)" }}>System Normal</span>
+            <Zap className="w-3 h-3 fill-current text-green-500" />
+          </div>
+          <span className="text-[8px] font-bold uppercase tracking-[0.3em]" style={{ color: "var(--muted)" }}>99.9% Uptime</span>
+        </div>
+        
+        <NotificationDropdown />
+
+        <div className="lg:hidden w-12 h-12 rounded-2xl flex items-center justify-center border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "var(--foreground)" }}>
+            <span className="text-[10px] font-black" style={{ color: "var(--background)" }}>
+              {user?.name?.charAt(0) || "P"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SearchProvider>
+      <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
+        <Sidebar />
+        <main className="flex-1 flex flex-col min-w-0 relative">
+          <HeaderContent />
+          <div className="flex-1 p-6 lg:p-12 overflow-x-hidden">
+            {children}
+          </div>
+          <div className="h-20 lg:hidden shrink-0" style={{ background: "var(--surface)" }} />
+        </main>
+        <BottomNav />
+      </div>
+    </SearchProvider>
   );
 }

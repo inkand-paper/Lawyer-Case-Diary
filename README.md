@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚖️ Lawyer Case Diary — Professional Judicial SaaS
 
-## Getting Started
+**Lawyer Case Diary** is a high-fidelity, production-grade SaaS platform designed for legal practitioners to manage litigation files, client relationships, and court dockets with mathematical precision. Built with a strict monochrome aesthetic, it offers a "mission-critical" interface for modern law firms.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 System Architecture
+
+The platform is built on a modern, secure stack designed for high-concurrency and real-time synchronization:
+
+*   **Core**: Next.js 15 (App Router)
+*   **Database**: PostgreSQL (via Supabase)
+*   **ORM**: Prisma (Type-safe database interactions)
+*   **Auth**: Secure JWT + HttpOnly Cookies + Bearer Tokens (Mobile Ready)
+*   **Optimization**: Next.js Optimizer Suite (Instant Cache Revalidation)
+*   **Styling**: Vanilla CSS with a Strict Monochrome Design System
+
+---
+
+## ⚡ Cache Revalidation (Optimizer Suite)
+
+The project integrates the **Next.js Optimizer Suite** to solve the "Stale Data" problem. 
+
+### How it works:
+1.  When you create/update a record (e.g., a New Case), the backend calls the `revalidateTags` utility in `src/lib/optimizer.ts`.
+2.  This sends a secure signal to the Optimizer Suite (configured via `OPTIMIZER_URL` in `.env`).
+3.  The Optimizer instantly purges the specific data cache in your live Vercel deployment.
+4.  **Result**: Your dashboard updates instantly without needing a page refresh.
+
+**Tags used in the system:**
+*   `cases`: Global case registry.
+*   `clients`: Global client registry.
+*   `dashboard`: Main statistics and charts.
+*   `case:[id]`: Deep cache for a specific case file.
+
+---
+
+## 📱 Mobile & Android Integration
+
+The backend is architected to power native mobile apps out-of-the-box.
+
+### 🔑 Authentication for Mobile
+Instead of cookies, mobile apps use **API Keys** or **JWT Bearer Tokens**.
+*   **API Keys**: Generate these in **Settings > Security**.
+*   **Usage**: Send the key in the header: `Authorization: Bearer <your_key>`.
+
+### 📡 Key APIs for Mobile
+| Feature | Endpoint | Description |
+| :--- | :--- | :--- |
+| **Authentication** | `POST /api/auth/login` | Obtain a JWT token. |
+| **Cases** | `GET /api/cases` | List all legal files. |
+| **Hearings** | `GET /api/hearings` | View the judicial docket. |
+| **Notifications** | `GET /api/notifications/upcoming` | Get alerts for hearings within 60 mins. |
+| **Stats** | `GET /api/stats` | Dashboard metrics. |
+
+---
+
+## 🛠️ Global Search Intelligence
+
+The platform features a **Unified Registry Search**. 
+*   **Location**: The search bar in the top header.
+*   **Logic**: It uses a `SearchContext` to communicate with the active page. 
+*   **Behavior**: Typing in the header instantly filters the table/list on your current page (Cases, Clients, or Hearings).
+
+---
+
+## 📦 Deployment Checklist
+
+1.  **Environment**: Set `DATABASE_URL` and `JWT_SECRET` in Vercel.
+2.  **Database**: Run `npx prisma migrate deploy` to sync your Supabase schema.
+3.  **Optimizer**: Ensure `OPTIMIZER_URL` and `OPTIMIZER_KEY` are set for real-time UI updates.
+
+---
+
+## 📁 Project Structure
+
+```text
+src/
+├── app/              # Next.js Routes & APIs
+├── components/       # UI Components (Drawers, Forms, Nav)
+├── context/          # Global State (Search, Auth)
+├── lib/              
+│   ├── services/     # Business Logic (Case/Client operations)
+│   ├── auth-server/  # Security & Identity logic
+│   └── db/           # Database Client
+└── prisma/           # Database Schema & Migrations
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*© 2026 Antigravity Judicial Systems. Professional Legal SaaS Core.*
