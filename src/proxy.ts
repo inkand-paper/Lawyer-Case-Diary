@@ -7,14 +7,14 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 /**
- * Global Security & Auth Middleware
+ * Global Security & Auth Proxy (Next.js 16 Migration)
  * ─────────────────────────────────────────────────────────────
  * 1. Implements strict Security Headers (CSP, HSTS, etc.)
  * 2. Protects /dashboard and /api routes.
  * 3. Supports dual-mode auth (Cookie + Bearer).
  * ─────────────────────────────────────────────────────────────
  */
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const res = NextResponse.next();
 
