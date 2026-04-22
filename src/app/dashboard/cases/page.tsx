@@ -1,32 +1,55 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/**
+ * ============================================================
+ * CasesPage — Advanced Legal Repository
+ * ─────────────────────────────────────────────────────────────
+ * Primary interface for managing judicial files.
+ * SYNC: Integrated with Global Search via SearchContext.
+ * ============================================================
+ */
 
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  ArrowUpRight,
-  Briefcase
+import {
+  Search,
+  Plus,
+  Briefcase,
+  MapPin,
+  Scale,
+  MoreHorizontal,
+  Filter,
+  Loader2,
+  ChevronRight,
+  AlertCircle,
 } from "lucide-react";
+import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import { useSearch } from "@/context/SearchContext";
 
 export default function CasesPage() {
   const [cases, setCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+
+  // Global Search & Local Filter State
+  const { searchQuery, setSearchQuery } = useSearch();
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "CLOSED">("ALL");
 
   const fetchCases = async () => {
+    setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/cases");
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success) {
-          setCases(json.data);
-        }
+      const json = await res.json();
+      if (json.success) {
+        setCases(json.data);
+      } else {
+        setError(json.error?.message || "Failed to load judicial records.");
       }
-    } catch (e) {
-      console.error("Error fetching case directory", e);
+    } catch {
+      setError("Network protocol synchronization failed.");
     } finally {
       setLoading(false);
     }
@@ -36,113 +59,193 @@ export default function CasesPage() {
     fetchCases();
   }, []);
 
+  const filteredCases = useMemo(() => {
+    return cases.filter((c) => {
+      const matchesSearch =
+        c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.client?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [cases, searchQuery, statusFilter]);
+
   return (
-    <div className="space-y-10">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Case Repository</h1>
-          <p className="text-zinc-500 font-medium">Manage and monitor all legal proceedings in one location.</p>
+    <div className="space-y-8 pb-20 lg:pb-0">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
+            Case Repository
+          </h1>
+          <p className="font-medium" style={{ color: "var(--muted)" }}>
+            Manage and monitor all legal proceedings in one location.
+          </p>
         </div>
-        <button className="h-14 px-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl transition-all font-bold text-lg flex items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+        <button
+          onClick={() => {
+            setSelectedCaseId(null);
+            setDrawerOpen(true);
+          }}
+          className="h-14 px-8 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition-all hover:opacity-80 shadow-lg"
+          style={{ background: "var(--foreground)", color: "var(--background)" }}
+        >
           <Plus className="w-5 h-5" />
           New Case
         </button>
       </div>
 
-      {/* Filters and Search */}
+      {/* Search & Filter Bar */}
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <input 
-            type="text" 
-            placeholder="Search by case name, number, or client..." 
-            className="w-full bg-zinc-950 border border-white/5 rounded-2xl pl-12 pr-6 py-4 text-sm text-white focus:outline-none focus:border-indigo-600/50 transition-all"
+        <div className="flex-1 relative group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors group-focus-within:text-foreground" style={{ color: "var(--muted)" }} />
+          <input
+            type="text"
+            placeholder="Search within cases..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-2xl pl-12 pr-6 py-4 text-sm focus:outline-none transition-all font-medium"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
           />
         </div>
-        <button className="px-6 bg-zinc-950 border border-white/5 text-zinc-400 rounded-2xl flex items-center gap-2 hover:text-white transition-colors">
-          <Filter className="w-4 h-4" />
-          Filters
-        </button>
-      </div>
-
-      <div className="bg-zinc-950 border border-white/5 rounded-[2.5rem] overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-white/5 bg-white/[0.01]">
-              <th className="px-8 py-5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Case Profile</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Client Name</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Presiding Judge</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Status</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-8 py-10 text-center text-zinc-500 font-bold uppercase tracking-widest text-sm">
-                  Synchronizing Registry Data...
-                </td>
-              </tr>
-            ) : cases.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-8 py-10 text-center text-zinc-500 font-bold uppercase tracking-widest text-sm">
-                  No cases active in the registry. Initialize a new case to proceed.
-                </td>
-              </tr>
-            ) : cases.map((c, i) => (
-              <motion.tr
-                key={c.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="hover:bg-white/[0.02] transition-colors group"
-              >
-                <td className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white/5 p-2.5 rounded-xl text-indigo-400">
-                      <Briefcase className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors tracking-tight">{c.title}</p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{c.caseNumber}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <p className="text-sm font-semibold text-zinc-300">{c.client?.name || "Unknown Entity"}</p>
-                </td>
-                <td className="px-8 py-6">
-                  <p className="text-sm font-medium text-zinc-400">{c.judgeName || "Assigned by Court"}</p>
-                </td>
-                <td className="px-8 py-6">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-                    c.status === "ACTIVE" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                  }`}>
-                    {c.status}
-                  </span>
-                </td>
-                <td className="px-8 py-6 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button className="p-2 hover:bg-white/5 rounded-xl transition-all">
-                      <ArrowUpRight className="w-4 h-4 text-zinc-500 hover:text-white" />
-                    </button>
-                    <button className="p-2 hover:bg-white/5 rounded-xl transition-all">
-                      <MoreHorizontal className="w-4 h-4 text-zinc-500 hover:text-white" />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-        
-        {/* Pagination placeholder */}
-        <div className="p-8 border-t border-white/5 flex items-center justify-center gap-4">
-           <button className="w-10 h-10 rounded-xl border border-white/5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all text-sm font-bold">1</button>
-           <button className="w-10 h-10 rounded-xl border border-white/5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all text-sm font-bold">2</button>
-           <button className="w-10 h-10 rounded-xl border border-white/5 text-zinc-500 hover:text-white hover:bg-white/5 transition-all text-sm font-bold">3</button>
+        <div className="flex items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="h-full px-5 rounded-2xl font-bold text-xs uppercase tracking-widest outline-none appearance-none cursor-pointer"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+          >
+            <option value="ALL">All States</option>
+            <option value="ACTIVE">Active</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+          <button
+            className="h-full px-6 rounded-2xl flex items-center gap-2 font-bold text-xs uppercase tracking-widest border"
+            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--muted)" }}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+          </button>
         </div>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="p-6 rounded-[2rem] flex items-center gap-4" style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444" }}>
+          <AlertCircle className="w-6 h-6 shrink-0" />
+          <p className="font-bold">{error}</p>
+        </div>
+      )}
+
+      {/* Responsive Table */}
+      <div className="rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden shadow-sm" style={{ border: "1px solid var(--border)" }}>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left min-w-[800px]">
+            <thead>
+              <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
+                {["Case Profile", "Client Entity", "Presiding Judge", "Status", "Actions"].map((h, i) => (
+                  <th key={h} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
+                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Recovering Records...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCases.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-4 opacity-40">
+                      <Briefcase className="w-10 h-10" style={{ color: "var(--muted)" }} />
+                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>No matching records found.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredCases.map((c, i) => (
+                  <motion.tr
+                    key={c.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="cursor-pointer group hover:bg-[var(--surface)] transition-colors"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                    onClick={() => {
+                      setSelectedCaseId(c.id);
+                      setDrawerOpen(true);
+                    }}
+                  >
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl transition-all group-hover:scale-110" style={{ background: "var(--foreground)" }}>
+                          <Scale className="w-4 h-4" style={{ color: "var(--background)" }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold tracking-tight" style={{ color: "var(--foreground)" }}>{c.title}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "var(--muted)" }}>{c.caseNumber}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--border)" }} />
+                        <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{c.client?.name || "System Record"}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--muted)" }}>
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{c.judgeName || "Assigned by Court"}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span
+                        className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                        style={c.status === "ACTIVE" 
+                          ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
+                          : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
+                        }
+                      >
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <CaseEditorDrawer
+        isOpen={drawerOpen}
+        caseId={selectedCaseId}
+        onClose={() => setDrawerOpen(false)}
+        onSuccess={() => {
+          fetchCases();
+          setDrawerOpen(false);
+        }}
+      />
     </div>
   );
 }

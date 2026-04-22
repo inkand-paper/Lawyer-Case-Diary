@@ -17,15 +17,19 @@ export const metadata: Metadata = {
   description: "The premium SaaS engine for modern legal professionals.",
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased dark`}>
-      <body className="min-h-full flex flex-col bg-black text-white font-sans">
-        {children}
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable} h-full antialiased dark`}>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} themes={["light", "dark"]}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

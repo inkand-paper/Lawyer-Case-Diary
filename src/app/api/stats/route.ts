@@ -19,19 +19,23 @@ export async function GET() {
   if (!userId) return apiErrors.UNAUTHORIZED("Electronic session expired or invalid.");
 
   try {
-    // 1. Parallel aggregation for maximum performance
+    // 1. Calculate the start of today for inclusive hearing counting
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // 2. Parallel aggregation for maximum performance
     const [caseCount, clientCount, hearingCount] = await Promise.all([
       db.case.count({ where: { userId } }),
       db.client.count({ where: { userId } }),
       db.hearing.count({
         where: {
           case: { userId },
-          hearingDate: { gte: new Date() },
+          hearingDate: { gte: todayStart },
         },
       }),
     ]);
 
-    // 2. Recent procedural activity for the intelligence feed
+    // 3. Recent procedural activity for the intelligence feed
     const recentCases = await db.case.findMany({
       where: { userId },
       take: 5,

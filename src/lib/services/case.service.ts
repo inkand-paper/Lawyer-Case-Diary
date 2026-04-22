@@ -17,8 +17,6 @@ export interface CreateCaseData {
 
 /**
  * Creates a new legal case record.
- * @param userId - The ID of the lawyer initiating the record.
- * @param data - Professional case metadata.
  */
 export const createCase = async (userId: string, data: CreateCaseData) => {
   const newCase = await db.case.create({
@@ -31,15 +29,12 @@ export const createCase = async (userId: string, data: CreateCaseData) => {
     },
   });
 
-  // 🔥 Trigger optimizer for real-time UI updates
   await revalidateTags(["cases", "dashboard", `client:${data.clientId}`]);
-
   return newCase;
 };
 
 /**
  * Retrieves all cases owned by a specific practitioner.
- * @param userId - Requesting lawyer's unique identifier.
  */
 export const getCases = async (userId: string) => {
   return await db.case.findMany({
@@ -50,9 +45,7 @@ export const getCases = async (userId: string) => {
 };
 
 /**
- * Retrieves a single case with full relational depth (Hearings, Notes, Payments).
- * @param userId - Scoped owner ID for privacy verification.
- * @param caseId - Target case identifier.
+ * Retrieves a single case with full relational depth.
  */
 export const getCaseById = async (userId: string, caseId: string) => {
   return await db.case.findFirst({
@@ -68,9 +61,6 @@ export const getCaseById = async (userId: string, caseId: string) => {
 
 /**
  * Updates an existing case record.
- * @param userId - Owner verification.
- * @param caseId - Target case.
- * @param data - Partial update payload.
  */
 export const updateCase = async (userId: string, caseId: string, data: Partial<CreateCaseData> & { status?: string }) => {
   const updatedCase = await db.case.update({
@@ -78,23 +68,33 @@ export const updateCase = async (userId: string, caseId: string, data: Partial<C
     data,
   });
 
-  // 🔥 Notify system of state change
   await revalidateTags(["cases", `case:${caseId}`, "dashboard"]);
   return updatedCase;
 };
 
 /**
  * Permanently removes a case record (Hard Delete).
- * @param userId - Owner verification.
- * @param caseId - Target case.
+ * ─────────────────────────────────────────────────────────────
+ * SAFETY: Implements manual cascading deletes for all associated 
+ * hearings, notes, and payments to prevent FK violations.
+ * ─────────────────────────────────────────────────────────────
  */
 export const deleteCase = async (userId: string, caseId: string) => {
-  const deletedCase = await db.case.delete({
-    where: { id: caseId, userId },
-  });
+  return await db.$transaction(async (tx) => {
+    // 1. Delete all associated sub-records
+    await tx.hearing.deleteMany({ where: { caseId } });
+    await tx.note.deleteMany({ where: { caseId } });
+    await tx.payment.deleteMany({ where: { caseId } });
+    await tx.reminder.deleteMany({ where: { caseId } });
 
-  await revalidateTags(["cases", "dashboard"]);
-  return deletedCase;
+    // 2. Delete the primary case record
+    const deletedCase = await tx.case.delete({
+      where: { id: caseId, userId },
+    });
+
+    await revalidateTags(["cases", "dashboard"]);
+    return deletedCase;
+  });
 };
 
 /**
