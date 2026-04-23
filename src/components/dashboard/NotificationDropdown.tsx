@@ -57,7 +57,7 @@ export function NotificationDropdown() {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 mt-3 w-80 rounded-[2rem] shadow-2xl z-50 overflow-hidden"
+              className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-80 rounded-[2rem] shadow-2xl z-50 overflow-hidden"
               style={{ background: "var(--background)", border: "1px solid var(--border)" }}
             >
               <div className="p-5 flex items-center justify-between border-b" style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}>

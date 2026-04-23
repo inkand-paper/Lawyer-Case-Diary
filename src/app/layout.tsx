@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
+import type { Viewport } from "next";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,6 +15,14 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Lawyer Case Diary | Digital Court Brain",
   description: "The premium SaaS engine for modern legal professionals.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 import { ThemeProvider } from "@/components/ThemeProvider";

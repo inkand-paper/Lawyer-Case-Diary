@@ -139,101 +139,164 @@ export default function CasesPage() {
         </div>
       )}
 
-      {/* Responsive Table */}
-      <div className="rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden shadow-sm" style={{ border: "1px solid var(--border)" }}>
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left min-w-[800px]">
-            <thead>
-              <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
-                {["Case Profile", "Client Entity", "Presiding Judge", "Status", "Actions"].map((h, i) => (
-                  <th key={h} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
-                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Recovering Records...</p>
+      {/* Registry Display (Table on Desktop, Cards on Mobile) */}
+      <div className="space-y-4 lg:space-y-0">
+        {/* Mobile Card View */}
+        <div className="grid grid-cols-1 gap-4 lg:hidden">
+          {loading ? (
+            <div className="py-20 text-center flex flex-col items-center gap-4">
+              <Loader2 className="w-8 h-8 animate-spin text-muted" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted">Recovering Records...</p>
+            </div>
+          ) : filteredCases.length === 0 ? (
+            <div className="py-20 text-center flex flex-col items-center gap-4 opacity-40">
+              <Briefcase className="w-10 h-10 text-muted" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted">No matching records found.</p>
+            </div>
+          ) : (
+            filteredCases.map((c) => (
+              <motion.div
+                key={c.id}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setSelectedCaseId(c.id);
+                  setDrawerOpen(true);
+                }}
+                className="p-5 rounded-3xl border surface flex flex-col gap-4 shadow-sm active:bg-[var(--surface-2)] transition-colors"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                      <Scale className="w-4 h-4 text-background" />
                     </div>
-                  </td>
-                </tr>
-              ) : filteredCases.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-4 opacity-40">
-                      <Briefcase className="w-10 h-10" style={{ color: "var(--muted)" }} />
-                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>No matching records found.</p>
+                    <div>
+                      <h3 className="text-sm font-bold leading-tight text-foreground">{c.title}</h3>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted mt-0.5">{c.caseNumber}</p>
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredCases.map((c, i) => (
-                  <motion.tr
-                    key={c.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="cursor-pointer group hover:bg-[var(--surface)] transition-colors"
-                    style={{ borderBottom: "1px solid var(--border)" }}
-                    onClick={() => {
-                      setSelectedCaseId(c.id);
-                      setDrawerOpen(true);
-                    }}
+                  </div>
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border shrink-0"
+                    style={c.status === "ACTIVE" 
+                      ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
+                      : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
+                    }
                   >
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl transition-all group-hover:scale-110" style={{ background: "var(--foreground)" }}>
-                          <Scale className="w-4 h-4" style={{ color: "var(--background)" }} />
+                    {c.status}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-base">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Client Entity</span>
+                    <span className="text-xs font-bold text-foreground">{c.client?.name || "N/A"}</span>
+                  </div>
+                  <div className="flex flex-col gap-1 items-end text-right">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Presiding Judge</span>
+                    <span className="text-xs font-bold text-foreground truncate max-w-[120px]">{c.judgeName || "Assigned"}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block rounded-[2.5rem] overflow-hidden shadow-sm" style={{ border: "1px solid var(--border)" }}>
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left">
+              <thead>
+                <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
+                  {["Case Profile", "Client Entity", "Presiding Judge", "Status", "Actions"].map((h, i) => (
+                    <th key={h} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-20 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Recovering Records...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredCases.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-8 py-20 text-center">
+                      <div className="flex flex-col items-center gap-4 opacity-40">
+                        <Briefcase className="w-10 h-10" style={{ color: "var(--muted)" }} />
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>No matching records found.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCases.map((c, i) => (
+                    <motion.tr
+                      key={c.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="cursor-pointer group hover:bg-[var(--surface)] transition-colors"
+                      style={{ borderBottom: "1px solid var(--border)" }}
+                      onClick={() => {
+                        setSelectedCaseId(c.id);
+                        setDrawerOpen(true);
+                      }}
+                    >
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 rounded-xl transition-all group-hover:scale-110" style={{ background: "var(--foreground)" }}>
+                            <Scale className="w-4 h-4" style={{ color: "var(--background)" }} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold tracking-tight" style={{ color: "var(--foreground)" }}>{c.title}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "var(--muted)" }}>{c.caseNumber}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold tracking-tight" style={{ color: "var(--foreground)" }}>{c.title}</p>
-                          <p className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "var(--muted)" }}>{c.caseNumber}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--border)" }} />
+                          <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{c.client?.name || "System Record"}</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--border)" }} />
-                        <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{c.client?.name || "System Record"}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--muted)" }}>
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{c.judgeName || "Assigned by Court"}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span
-                        className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                        style={c.status === "ACTIVE" 
-                          ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
-                          : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
-                        }
-                      >
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--muted)" }}>
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{c.judgeName || "Assigned by Court"}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span
+                          className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                          style={c.status === "ACTIVE" 
+                            ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
+                            : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
+                          }
+                        >
+                          {c.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

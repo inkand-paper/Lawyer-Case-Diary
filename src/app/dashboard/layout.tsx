@@ -16,8 +16,9 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
-import { Search, Shield, Zap, X } from "lucide-react";
+import { Search, Shield, Zap, X, Scale } from "lucide-react";
 import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
+import { ThemeGlider } from "@/components/dashboard/ThemeGlider";
 import { SearchProvider, useSearch } from "@/context/SearchContext";
 
 function HeaderContent() {
@@ -37,27 +38,35 @@ function HeaderContent() {
 
   return (
     <header
-      className="h-20 sm:h-24 px-6 lg:px-12 flex items-center justify-between sticky top-0 z-[50] transition-all border-b"
+      className="h-20 sm:h-24 px-4 sm:px-6 lg:px-12 flex items-center justify-between sticky top-0 z-[50] transition-all border-b"
       style={{ background: "var(--background)", borderColor: "var(--border)" }}
     >
       {/* Identity & Search Section */}
-      <div className="flex items-center gap-6 lg:gap-12 flex-1">
+      <div className="flex items-center gap-4 lg:gap-12 flex-1">
+        {/* Desktop Brand */}
         <div className="hidden lg:flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: "var(--foreground)" }}>
-            <Shield className="w-5 h-5" style={{ color: "var(--background)" }} />
+          <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shadow-lg">
+            <Shield className="w-5 h-5 text-background" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--foreground)" }}>
+            <span className="text-xs font-black uppercase tracking-widest text-foreground">
               {user?.name || "Practitioner"}
             </span>
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--muted)" }}>
+            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted">
               Verified Identity
             </span>
           </div>
         </div>
 
+        {/* Mobile Brand Logo */}
+        <div className="lg:hidden flex items-center gap-2 shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-foreground flex items-center justify-center">
+            <Scale className="w-5 h-5 text-background" />
+          </div>
+        </div>
+
         {/* Global Registry Search */}
-        <div className="relative flex-1 max-w-md group">
+        <div className="relative flex-1 max-w-[160px] sm:max-w-md group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors group-focus-within:text-foreground" style={{ color: "var(--muted)" }} />
           <input
             type="text"
@@ -88,6 +97,8 @@ function HeaderContent() {
           <span className="text-[8px] font-bold uppercase tracking-[0.3em]" style={{ color: "var(--muted)" }}>99.9% Uptime</span>
         </div>
         
+        <ThemeGlider />
+        
         <NotificationDropdown />
 
         <div className="lg:hidden w-12 h-12 rounded-2xl flex items-center justify-center border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
@@ -109,10 +120,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar />
         <main className="flex-1 flex flex-col min-w-0 relative">
           <HeaderContent />
-          <div className="flex-1 p-6 lg:p-12 overflow-x-hidden">
+          <div className="flex-1 p-4 sm:p-6 lg:p-12 overflow-x-hidden">
             {children}
           </div>
-          <div className="h-20 lg:hidden shrink-0" style={{ background: "var(--surface)" }} />
+          <div className="h-20 lg:hidden shrink-0 pb-safe" style={{ background: "var(--surface)" }} />
         </main>
         <BottomNav />
       </div>
