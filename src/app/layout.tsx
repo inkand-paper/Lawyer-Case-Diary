@@ -1,5 +1,5 @@
 import { Inter, Outfit } from "next/font/google";
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 const inter = Inter({
