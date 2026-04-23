@@ -46,7 +46,7 @@ export default function Home() {
 
           {/* Hero */}
           <h1
-            className="text-5xl lg:text-8xl font-black tracking-tighter leading-[1.05]"
+            className="text-4xl sm:text-5xl lg:text-8xl font-black tracking-tighter leading-[1.05]"
             style={{ color: "var(--foreground)" }}
           >
             Your Digital Court Brain.<br />

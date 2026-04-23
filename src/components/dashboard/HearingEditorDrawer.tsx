@@ -101,12 +101,16 @@ export function HearingEditorDrawer({
     const endpoint = hearingId ? `/api/hearings/${hearingId}` : `/api/hearings`;
 
     try {
+      // Ensure the date is treated as LOCAL time by the browser before converting to ISO for the server
+      const localDateStr = formData.get("hearingDate") as string;
+      const isoDate = localDateStr ? new Date(localDateStr).toISOString() : undefined;
+
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           caseId: formData.get("caseId"),
-          hearingDate: formData.get("hearingDate"),
+          hearingDate: isoDate,
           notes: formData.get("notes") || undefined,
         }),
       });
@@ -239,7 +243,16 @@ export function HearingEditorDrawer({
                       type="datetime-local"
                       name="hearingDate"
                       required
-                      defaultValue={hearingData.hearingDate ? new Date(hearingData.hearingDate).toISOString().slice(0, 16) : ""}
+                      defaultValue={
+                        hearingData.hearingDate 
+                          ? (() => {
+                              const d = new Date(hearingData.hearingDate);
+                              // Manually adjust for local timezone offset to get the correct "datetime-local" string
+                              const offset = d.getTimezoneOffset() * 60000;
+                              return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+                            })()
+                          : ""
+                      }
                       className="w-full rounded-2xl px-6 py-5 text-sm focus:outline-none font-medium"
                       style={inputStyle}
                     />

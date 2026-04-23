@@ -54,9 +54,9 @@ export function EyeInput({ label, error, className, ...props }: EyeInputProps) {
           title={show ? "Hide Password" : "Show Password"}
         >
           {show ? (
-            <EyeOff className="w-4 h-4 animate-in fade-in zoom-in duration-300" />
+            <EyeOff className="w-4 h-4" />
           ) : (
-            <Eye className="w-4 h-4 animate-in fade-in zoom-in duration-300" />
+            <Eye className="w-4 h-4" />
           )}
         </button>
         

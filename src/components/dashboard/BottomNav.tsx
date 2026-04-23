@@ -35,7 +35,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 h-20 px-4 flex items-center justify-between z-[50] border-t"
+      className="lg:hidden fixed bottom-0 left-0 right-0 h-20 sm:h-24 px-4 flex items-center justify-between z-[50] border-t pb-safe"
       style={{
         background: "var(--surface)",
         borderColor: "var(--border)",
