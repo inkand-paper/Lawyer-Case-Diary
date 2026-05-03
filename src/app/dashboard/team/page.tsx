@@ -246,11 +246,11 @@ export default function TeamHub() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-[var(--border)]">
                    <div className="space-y-1">
                       <p className="text-[8px] font-black uppercase tracking-widest text-[var(--muted)]">Total Members</p>
-                      <p className="text-xl font-black text-[var(--foreground)]">{chamber.members.length}</p>
+                      <p className="text-xl font-black text-[var(--foreground)]">{chamber.members?.length ?? 0}</p>
                    </div>
                    <div className="space-y-1">
                       <p className="text-[8px] font-black uppercase tracking-widest text-[var(--muted)]">Active Invites</p>
-                      <p className="text-xl font-black text-[var(--foreground)]">{chamber.invites.length}</p>
+                      <p className="text-xl font-black text-[var(--foreground)]">{chamber.invites?.length ?? 0}</p>
                    </div>
                    <div className="space-y-1">
                       <p className="text-[8px] font-black uppercase tracking-widest text-[var(--muted)]">Registry Protocol</p>
