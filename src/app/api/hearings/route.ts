@@ -52,6 +52,7 @@ export async function POST(req: Request) {
     const hearing = await createHearing(userId, validationResult.data);
     return successResponse(hearing, "Hearing successfully enrolled in the procedural timeline.", 201);
   } catch (error: unknown) {
-    return apiErrors.SERVER_ERROR(error.message || "A critical failure occurred during hearing enrollment.", error);
+    const message = error instanceof Error ? error.message : String(error);
+    return apiErrors.SERVER_ERROR(message || "A critical failure occurred during hearing enrollment.", error);
   }
 }
