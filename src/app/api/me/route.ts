@@ -26,7 +26,7 @@ export async function GET() {
   try {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, plan: true, createdAt: true },
     });
 
     if (!user)
@@ -84,7 +84,7 @@ export async function PATCH(req: Request) {
     const updated = await db.user.update({
       where: { id: userId },
       data: { ...(data.name && { name: data.name }), ...(data.email && { email: data.email }) },
-      select: { id: true, name: true, email: true, role: true },
+      select: { id: true, name: true, email: true, role: true, plan: true },
     });
 
     return successResponse(updated, "Profile updated successfully.");

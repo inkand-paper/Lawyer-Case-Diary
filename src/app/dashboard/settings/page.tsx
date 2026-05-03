@@ -77,12 +77,12 @@ export default function SettingsPage() {
       ],
     },
     {
-      title: "Billing & Plans",
+      title: "Subscription & Plan",
       description: "Manage your professional subscription tier and billing methods.",
       icon: CreditCard,
       fields: [
-        { label: "Subscription", value: "Professional SaaS" },
-        { label: "Method", value: "Stripe Secure" },
+        { label: "Active Tier", value: userData?.plan || "ESSENTIAL" },
+        { label: "Billing Status", value: "Verified Professional" },
       ],
     },
   ];

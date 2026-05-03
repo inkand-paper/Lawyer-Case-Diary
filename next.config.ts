@@ -6,6 +6,7 @@ import type { NextConfig } from "next";
  *   caused by a parent-directory package-lock.json at E:\Abir
  */
 const nextConfig: NextConfig = {
+  output: "standalone",
   turbopack: {
     root: "./",
   },

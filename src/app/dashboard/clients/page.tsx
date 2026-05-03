@@ -2,7 +2,7 @@
 
 /**
  * ============================================================
- * ClientsPage — Professional CRM & Registry
+ * ClientsPage — Clients
  * ─────────────────────────────────────────────────────────────
  * Central hub for managing judicial entities and clients.
  * SYNC: Integrated with Global Search via SearchContext.
@@ -125,7 +125,7 @@ export default function ClientsPage() {
           {loading ? (
             <div className="py-20 text-center flex flex-col items-center gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-muted" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted">Synchronizing Registry...</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted">Loading...</p>
             </div>
           ) : filteredClients.length === 0 ? (
             <div className="py-20 text-center opacity-40">
@@ -209,7 +209,7 @@ export default function ClientsPage() {
                     <td colSpan={5} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
-                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Synchronizing Registry...</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Loading...</p>
                       </div>
                     </td>
                   </tr>

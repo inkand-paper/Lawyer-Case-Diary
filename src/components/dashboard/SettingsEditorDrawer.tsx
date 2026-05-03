@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import {
   X,
   Save,
@@ -27,6 +28,8 @@ import {
   Trash2,
   Copy,
   ShieldCheck,
+  LogOut,
+  Zap,
 } from "lucide-react";
 
 interface SettingsEditorDrawerProps {
@@ -142,6 +145,7 @@ export function SettingsEditorDrawer({
 
   const isSecurity = section === "Security & Authentication";
   const isProfile = section === "Profile & Identity";
+  const isSubscription = section === "Subscription & Plan";
 
   return (
     <AnimatePresence>
@@ -177,7 +181,9 @@ export function SettingsEditorDrawer({
             >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl" style={{ background: "var(--foreground)" }}>
-                  {isProfile ? <User className="w-5 h-5" style={{ color: "var(--background)" }} /> : <ShieldCheck className="w-5 h-5" style={{ color: "var(--background)" }} />}
+                  {isProfile ? <User className="w-5 h-5" style={{ color: "var(--background)" }} /> : 
+                   isSubscription ? <CreditCard className="w-5 h-5" style={{ color: "var(--background)" }} /> :
+                   <ShieldCheck className="w-5 h-5" style={{ color: "var(--background)" }} />}
                 </div>
                 <div>
                   <h2 className="text-lg font-black tracking-tight uppercase" style={{ color: "var(--foreground)" }}>
@@ -296,6 +302,41 @@ export function SettingsEditorDrawer({
                 </div>
               )}
 
+              {isSubscription && (
+                <div className="space-y-8">
+                   <div className="p-10 rounded-[3rem] bg-blue-600 text-white shadow-2xl relative overflow-hidden group">
+                      <Zap className="absolute -right-8 -top-8 w-40 h-40 opacity-10 group-hover:rotate-12 transition-transform" />
+                      <div className="relative z-10 space-y-4">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-60">Active Protocol</p>
+                        <h3 className="text-4xl font-black uppercase tracking-tight">{currentUser?.plan}</h3>
+                        <div className="flex items-center gap-2 pt-4">
+                           <ShieldCheck className="w-4 h-4" />
+                           <span className="text-[10px] font-bold uppercase tracking-widest">Enterprise Grade Security Enabled</span>
+                        </div>
+                      </div>
+                   </div>
+
+                   <div className="space-y-4">
+                      <h3 className="text-[10px] font-black uppercase tracking-widest ml-1">Plan Management</h3>
+                      <Link 
+                        href="/pricing"
+                        className="flex items-center justify-between p-6 rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] hover:border-blue-500/50 transition-all group"
+                      >
+                        <div className="flex items-center gap-4">
+                           <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800">
+                              <Zap className="w-5 h-5 text-blue-500" />
+                           </div>
+                           <div>
+                              <p className="text-sm font-black text-[var(--foreground)]">Upgrade Membership</p>
+                              <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Explore premium tiers</p>
+                           </div>
+                        </div>
+                        <Plus className="w-4 h-4 text-[var(--muted)] group-hover:text-blue-500 transition-colors" />
+                      </Link>
+                   </div>
+                </div>
+              )}
+
               {/* Other Stubs */}
               {!isProfile && !isSecurity && (
                 <div className="p-8 text-center space-y-4 opacity-40">
@@ -305,6 +346,24 @@ export function SettingsEditorDrawer({
                   <p className="text-[10px] font-black uppercase tracking-widest">Configuring {section} module...</p>
                 </div>
               )}
+
+              {/* Shared Logout Protocol */}
+              <div className="mt-12 pt-8 border-t" style={{ borderColor: "var(--border)" }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      await fetch("/api/auth/logout", { method: "POST" });
+                    } catch {}
+                    window.location.href = "/";
+                  }}
+                  className="w-full h-16 rounded-2xl bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-red-500 hover:text-white transition-all shadow-lg border border-red-500/20"
+                >
+                  <LogOut className="w-4 h-4" /> Sign Out from System
+                </button>
+                <p className="text-center text-[8px] font-bold uppercase tracking-[0.2em] mt-4 opacity-40">
+                  Version 4.2.1 • Secure Session Environment
+                </p>
+              </div>
             </div>
           </motion.div>
         </>

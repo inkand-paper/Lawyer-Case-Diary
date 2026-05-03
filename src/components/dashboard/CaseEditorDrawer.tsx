@@ -15,6 +15,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import {
   X,
   Briefcase,
@@ -27,6 +28,7 @@ import {
   Calendar,
   Plus,
   AlertCircle,
+  Crown,
 } from "lucide-react";
 
 interface CaseEditorDrawerProps {
@@ -303,7 +305,7 @@ export function CaseEditorDrawer({
                   <div className="space-y-2.5">
                     <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-2" style={{ color: "var(--muted)" }}>
                       <Users className="w-3 h-3" />
-                      Client Entity {!caseId && <span style={{ color: "#ef4444" }}>*</span>}
+                      Client {!caseId && <span style={{ color: "#ef4444" }}>*</span>}
                     </label>
                     {caseId ? (
                       <div className="flex items-center gap-4 px-6 py-5 rounded-2xl" style={inputStyle}>
@@ -320,7 +322,7 @@ export function CaseEditorDrawer({
                           className="w-full rounded-2xl pl-14 pr-6 py-5 text-sm focus:outline-none font-medium appearance-none cursor-pointer"
                           style={inputStyle}
                         >
-                          <option value="" disabled>-- Select Client Entity --</option>
+                          <option value="" disabled>-- Select Client --</option>
                           {clients.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
                           ))}
@@ -369,7 +371,7 @@ export function CaseEditorDrawer({
 
                   {/* Judge */}
                   <div className="space-y-2.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: "var(--muted)" }}>Presiding Judge</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: "var(--muted)" }}>Judge</label>
                     <input
                       name="judgeName"
                       defaultValue={caseData.judgeName || ""}
@@ -382,11 +384,23 @@ export function CaseEditorDrawer({
                   {/* Error Banner */}
                   {error && (
                     <div
-                      className="p-5 rounded-2xl flex items-start gap-4 text-[11px] font-black uppercase tracking-widest"
-                      style={{ background: "rgba(239,68,68,0.05)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}
+                      className="p-6 rounded-[2rem] space-y-4"
+                      style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)" }}
                     >
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {error}
+                      <div className="flex items-start gap-4 text-[11px] font-black uppercase tracking-widest" style={{ color: "#ef4444" }}>
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        {error}
+                      </div>
+                      
+                      {error.toLowerCase().includes("limit reached") && (
+                        <Link 
+                          href="/pricing"
+                          className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+                        >
+                          <Crown className="w-4 h-4" />
+                          Upgrade to Pro Now
+                        </Link>
+                      )}
                     </div>
                   )}
 

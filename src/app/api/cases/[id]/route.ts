@@ -5,7 +5,7 @@
  */
 
 export const dynamic = 'force-dynamic';
-import { getAuthUser } from "@/lib/auth-server";
+import { getAuthContext } from "@/lib/auth-server";
 import { getCaseById, updateCase, deleteCase } from "@/lib/services/case.service";
 import { caseUpdateSchema } from "@/lib/validators";
 import { successResponse, apiErrors } from "@/lib/api-response";
@@ -17,12 +17,12 @@ type RouteParams = { params: Promise<{ id: string }> };
  * Retrieves a case with full relationship depth (Hearings, Notes, Payments).
  */
 export async function GET(_req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
-    const caseRecord = await getCaseById(userId, id);
+    const caseRecord = await getCaseById(user.id, user.chamberId, id);
     if (!caseRecord) return apiErrors.NOT_FOUND("Case record not found in the legal core.");
     return successResponse(caseRecord, "Case record retrieved successfully.");
   } catch (error) {
@@ -35,8 +35,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
  * Updates fields on an existing case record.
  */
 export async function PUT(req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
@@ -49,7 +49,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
     }
 
     // 2. Ownership-Verified Update
-    const updatedCase = await updateCase(userId, id, validationResult.data);
+    const updatedCase = await updateCase(user.id, user.chamberId, id, validationResult.data);
     return successResponse(updatedCase, "Case record updated successfully.");
   } catch (error: any) {
     if (error.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
@@ -62,12 +62,12 @@ export async function PUT(req: Request, { params }: RouteParams) {
  * Irreversibly removes a case from the legal registry.
  */
 export async function DELETE(_req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
-    const deletedCase = await deleteCase(userId, id);
+    const deletedCase = await deleteCase(user.id, user.chamberId, id);
     return successResponse(deletedCase, "Case permanently removed from the legal registry.");
   } catch (error: any) {
     if (error.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");

@@ -1,35 +1,41 @@
 @import "tailwindcss";
 
 /* =============================================
-   LAWYER CASE DIARY — STRICT MONOCHROME SYSTEM
-   Light: pure white surfaces, black text
-   Dark: solid near-black (#0f0f0f) surfaces, white text
-   NO transparency, NO blur artifacts
+   LAWYER CASE DIARY — WARM MONOCHROME SYSTEM
+   Light: off-white surfaces, dark gray text
+   Dark: near-black surfaces, off-white text
+   Anchor: Forest Green (#1A3A2E)
+   Accent: Lighter Forest Green (#0F6E56)
    ============================================= */
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --surface: #f4f4f4;
-  --surface-2: #ebebeb;
-  --border: #d4d4d4;
-  --muted: #737373;
+  --background: #f3f4f6;
+  --foreground: #1a1a1a;
+  --surface: #ffffff;
+  --surface-2: #f0f2f1;
+  --border: #d0d6d3;
+  --muted: #6b7571;
+  --primary: #1a3a2e;
+  --accent: #0f6e56;
 }
 
 .dark {
-  --background: #0f0f0f;
-  --foreground: #f5f5f5;
-  --surface: #1a1a1a;
-  --surface-2: #242424;
-  --border: #2e2e2e;
-  --muted: #737373;
+  --background: #121212;
+  --foreground: #eaeaea;
+  --surface: #1e2422;
+  --surface-2: #28302d;
+  --border: #35403c;
+  --muted: #889691;
+  --primary: #1a3a2e;
+  --accent: #0f6e56;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.15s linear, color 0.15s linear;
 }
 
 /* Custom Scrollbar */
@@ -66,7 +72,7 @@ body {
   from { opacity: 0; transform: translateY(1.5rem); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-in { animation: fade-in-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-in { animation: fade-in-up 0.2s linear both; }
 
 @keyframes pulse-slow {
   0%, 100% { opacity: 1; }

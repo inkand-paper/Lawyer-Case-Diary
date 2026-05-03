@@ -76,3 +76,18 @@ export const profileUpdateSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
 });
+
+/**
+ * Chamber Validation
+ */
+export const chamberSchema = z.object({
+  name: z.string().min(2, "Chamber name must be at least 2 characters."),
+});
+
+/**
+ * Invitation Validation
+ */
+export const invitationSchema = z.object({
+  email: z.string().email("Invalid professional email address."),
+  role: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
+});

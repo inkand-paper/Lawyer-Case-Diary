@@ -86,7 +86,7 @@ export default function RegisterPage() {
             Create Account
           </h1>
           <p className="mt-3 font-bold tracking-tight" style={{ color: "var(--muted)" }}>
-            Join the professional legal registry.
+            Join the account.
           </p>
         </div>
 

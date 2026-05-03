@@ -9,8 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
-    // Removed directUrl from config to avoid TypeScript error in Next.js build.
-    // The schema.prisma handles the direct connection logic correctly.
+    url: process.env["DIRECT_URL"] || process.env["DATABASE_URL"],
   },
 });

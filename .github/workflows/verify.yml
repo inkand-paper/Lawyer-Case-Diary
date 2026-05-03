@@ -1,0 +1,54 @@
+name: ⚖️ Lawyer Elite Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: lawyer_test
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://postgres:password@localhost:5432/lawyer_test"
+      JWT_SECRET: "test-secret-for-ci"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 🛠️ Install Dependencies
+      run: npm ci
+
+    - name: 🛡️ Database Synchronization
+      run: npx prisma db push --accept-data-loss
+
+    - name: 🏗️ Production Build Check
+      run: npm run build
+
+    - name: 🧪 Unit Testing (Vitest)
+      run: npm run test
+
+    - name: 🧹 Linting Check
+      run: npm run lint
