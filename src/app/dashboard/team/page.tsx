@@ -203,7 +203,7 @@ export default function TeamHub() {
                       <Scale className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-[var(--foreground)]">{inv.chamber.name}</p>
+                      <p className="text-sm font-black text-[var(--foreground)]">{inv.chamber?.name}</p>
                       <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Invitation to join Chamber</p>
                     </div>
                   </div>
