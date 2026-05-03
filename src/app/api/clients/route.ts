@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     });
 
     return successResponse(client, "Client successfully enrolled in the professional directory.", 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     await logger.error("A critical failure occurred while enrolling the client record.", error, { userId: user.id });
     return apiErrors.SERVER_ERROR("A critical failure occurred while enrolling the client record.", error);
   }

@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     // 2. Persistent Enrollment
     const hearing = await createHearing(userId, validationResult.data);
     return successResponse(hearing, "Hearing successfully enrolled in the procedural timeline.", 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return apiErrors.SERVER_ERROR(error.message || "A critical failure occurred during hearing enrollment.", error);
   }
 }

@@ -35,7 +35,7 @@ export async function GET() {
       );
 
     return successResponse(user, "Session identity verified.");
-  } catch (error) {
+  } catch (error: unknown) {
     return apiErrors.SERVER_ERROR("Failed to retrieve session profile.", error);
   }
 }
@@ -88,7 +88,7 @@ export async function PATCH(req: Request) {
     });
 
     return successResponse(updated, "Profile updated successfully.");
-  } catch (error: any) {
+  } catch (error: unknown) {
     return apiErrors.SERVER_ERROR("Failed to update profile.", error);
   }
 }

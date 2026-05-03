@@ -17,7 +17,6 @@ import {
   MapPin, 
   MoreHorizontal, 
   Scale, 
-  Clock, 
   Edit2, 
   AlertCircle,
   Search,
@@ -26,9 +25,10 @@ import {
 } from "lucide-react";
 import { HearingEditorDrawer } from "@/components/dashboard/HearingEditorDrawer";
 import { useSearch } from "@/context/SearchContext";
+import { Hearing } from "@/lib/types";
 
 export default function HearingsPage() {
-  const [hearings, setHearings] = useState<any[]>([]);
+  const [hearings, setHearings] = useState<Hearing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -39,7 +39,6 @@ export default function HearingsPage() {
   const [timeFilter, setTimeFilter] = useState<"ALL" | "UPCOMING" | "PAST">("ALL");
 
   const fetchHearings = async () => {
-    setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/hearings");

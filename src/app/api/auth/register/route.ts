@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 7. Standardized Server Error Handling
     return apiErrors.SERVER_ERROR(
       "A critical failure occurred during the registration process.",

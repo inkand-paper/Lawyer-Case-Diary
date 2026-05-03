@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     });
 
     return successResponse(newCase, "Case successfully enrolled in the diary system.", 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     await logger.error("A critical failure occurred while enrolling the case record.", error, { userId: user.id });
     return apiErrors.SERVER_ERROR("A critical failure occurred while enrolling the case record.", error);
   }
