@@ -11,14 +11,14 @@ type LogLevel = "INFO" | "WARN" | "ERROR";
 interface LogPayload {
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: Error | unknown;
 }
 
 /**
  * Sanitizes context to ensure sensitive fields are removed before logging.
  */
-const sanitizeContext = (context?: Record<string, any>) => {
+const sanitizeContext = (context?: Record<string, unknown>) => {
   if (!context) return undefined;
   
   const sanitized = { ...context };
@@ -35,15 +35,15 @@ const sanitizeContext = (context?: Record<string, any>) => {
 };
 
 export const logger = {
-  async info(message: string, context?: Record<string, any>) {
+  async info(message: string, context?: Record<string, unknown>) {
     await logEvent({ level: "INFO", message, context });
   },
 
-  async warn(message: string, context?: Record<string, any>) {
+  async warn(message: string, context?: Record<string, unknown>) {
     await logEvent({ level: "WARN", message, context });
   },
 
-  async error(message: string, error?: Error | unknown, context?: Record<string, any>) {
+  async error(message: string, error?: Error | unknown, context?: Record<string, unknown>) {
     await logEvent({ level: "ERROR", message, error, context });
   }
 };

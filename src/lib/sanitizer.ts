@@ -20,17 +20,18 @@ export function sanitizeInput(input: string): string {
 export function sanitizeObject<T>(obj: T): T {
   if (!obj || typeof obj !== "object") return obj;
 
-  const sanitized = Array.isArray(obj) ? [] : {};
+  const sanitized = (Array.isArray(obj) ? [] : {}) as Record<string, unknown>;
+  const inputObj = obj as Record<string, unknown>;
 
-  for (const key in obj) {
-    const value = (obj as any)[key];
+  for (const key in inputObj) {
+    const value = inputObj[key];
 
     if (typeof value === "string") {
-      (sanitized as any)[key] = sanitizeInput(value);
+      sanitized[key] = sanitizeInput(value);
     } else if (typeof value === "object" && value !== null) {
-      (sanitized as any)[key] = sanitizeObject(value);
+      sanitized[key] = sanitizeObject(value);
     } else {
-      (sanitized as any)[key] = value;
+      sanitized[key] = value;
     }
   }
 

@@ -22,7 +22,7 @@ async function main() {
     case "make-admin":
       if (!target) return console.error("❌ Target email required.");
       try {
-        const result = await prisma.user.update({
+        await prisma.user.update({
           where: { email: target },
           data: { 
             role: "ADMIN", 
@@ -39,7 +39,7 @@ async function main() {
     case "set-plan":
       if (!target || !value) return console.error("❌ Usage: set-plan <email> <ESSENTIAL|EXECUTIVE|ULTIMATE>");
       try {
-        const result = await prisma.user.update({
+        await prisma.user.update({
           where: { email: target },
           data: { plan: value.toUpperCase() },
         });
