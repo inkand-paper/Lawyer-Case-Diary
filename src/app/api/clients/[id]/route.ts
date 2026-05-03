@@ -5,7 +5,7 @@
  */
 
 export const dynamic = 'force-dynamic';
-import { getAuthUser } from "@/lib/auth-server";
+import { getAuthContext } from "@/lib/auth-server";
 import { updateClient, deleteClient } from "@/lib/services/client.service";
 import { clientUpdateSchema } from "@/lib/validators";
 import { successResponse, apiErrors } from "@/lib/api-response";
@@ -18,13 +18,16 @@ type RouteParams = { params: Promise<{ id: string }> };
  * Fetches a client with their full caseload history.
  */
 export async function GET(_req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
     const client = await db.client.findFirst({
-      where: { id, userId },
+      where: { 
+        id, 
+        OR: user.chamberId ? [{ chamberId: user.chamberId }] : [{ userId: user.id }]
+      },
       include: { cases: { orderBy: { createdAt: "desc" } } },
     });
     if (!client) return apiErrors.NOT_FOUND("Client record not found in the directory.");
@@ -39,8 +42,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
  * Updates contact and profile data for a specific client.
  */
 export async function PUT(req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
@@ -51,7 +54,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
       return apiErrors.BAD_REQUEST(validationResult.error.issues[0].message);
     }
 
-    const updatedClient = await updateClient(userId, id, validationResult.data);
+    const updatedClient = await updateClient(user.id, user.chamberId, id, validationResult.data);
     return successResponse(updatedClient, "Client profile updated successfully.");
   } catch (error: any) {
     if (error.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
@@ -64,12 +67,12 @@ export async function PUT(req: Request, { params }: RouteParams) {
  * Permanently removes the client from the professional directory.
  */
 export async function DELETE(_req: Request, { params }: RouteParams) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED();
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED();
 
   const { id } = await params;
   try {
-    const deletedClient = await deleteClient(userId, id);
+    const deletedClient = await deleteClient(user.id, id);
     return successResponse(deletedClient, "Client permanently removed from the professional directory.");
   } catch (error: any) {
     if (error.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
