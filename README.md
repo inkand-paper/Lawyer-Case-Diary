@@ -10,28 +10,35 @@ The platform is built on a modern, secure stack designed for high-concurrency an
 
 *   **Core**: Next.js 15 (App Router)
 *   **Database**: PostgreSQL (via Supabase)
-*   **ORM**: Prisma (Type-safe database interactions)
+*   **ORM**: Prisma 7 (Type-safe database interactions)
+*   **Containerization**: Docker & Docker Compose (Multi-stage production builds)
 *   **Auth**: Secure JWT + HttpOnly Cookies + Bearer Tokens (Mobile Ready)
-*   **Optimization**: Next.js Optimizer Suite (Instant Cache Revalidation)
+*   **Collaboration**: Multi-user "Chambers" (Teams) with Shared Data Access
 *   **Styling**: Vanilla CSS with a Strict Monochrome Design System
 
 ---
 
-## ⚡ Cache Revalidation (Optimizer Suite)
+## 🏢 Chamber (Team) Collaboration Protocol
 
-The project integrates the **Next.js Optimizer Suite** to solve the "Stale Data" problem. 
+The system now supports **Chamber-based shared workspaces**. 
+- **Shared Access**: Lawyers within the same Chamber can view and manage the same cases and clients.
+- **Privacy**: Data is scoped by `chamberId`. If a user is not in a Chamber, data remains private to their `userId`.
+- **Invitations**: Practitioners can invite other lawyers via email to join their Chamber (Requires Premium/Ultimate plan).
 
-### How it works:
-1.  When you create/update a record (e.g., a New Case), the backend calls the `revalidateTags` utility in `src/lib/optimizer.ts`.
-2.  This sends a secure signal to the Optimizer Suite (configured via `OPTIMIZER_URL` in `.env`).
-3.  The Optimizer instantly purges the specific data cache in your live Vercel deployment.
-4.  **Result**: Your dashboard updates instantly without needing a page refresh.
+---
 
-**Tags used in the system:**
-*   `cases`: Global case registry.
-*   `clients`: Global client registry.
-*   `dashboard`: Main statistics and charts.
-*   `case:[id]`: Deep cache for a specific case file.
+## 📦 Containerization & Deployment
+
+The app is fully Dockerized for consistent deployment across environments.
+
+### Running with Docker Compose:
+```bash
+docker-compose up --build
+```
+
+### Build Details:
+- **Dockerfile**: Uses a multi-stage build to minimize image size (Node 20 Alpine).
+- **Standalone Mode**: Configured in `next.config.ts` for optimal cloud performance.
 
 ---
 
@@ -44,47 +51,16 @@ Instead of cookies, mobile apps use **API Keys** or **JWT Bearer Tokens**.
 *   **API Keys**: Generate these in **Settings > Security**.
 *   **Usage**: Send the key in the header: `Authorization: Bearer <your_key>`.
 
-### 📡 Key APIs for Mobile
-| Feature | Endpoint | Description |
-| :--- | :--- | :--- |
-| **Authentication** | `POST /api/auth/login` | Obtain a JWT token. |
-| **Cases** | `GET /api/cases` | List all legal files. |
-| **Hearings** | `GET /api/hearings` | View the judicial docket. |
-| **Notifications** | `GET /api/notifications/upcoming` | Get alerts for hearings within 60 mins. |
-| **Stats** | `GET /api/stats` | Dashboard metrics. |
-
 ---
 
-## 🛠️ Global Search Intelligence
+## 🛡️ Legal & License
 
-The platform features a **Unified Registry Search**. 
-*   **Location**: The search bar in the top header.
-*   **Logic**: It uses a `SearchContext` to communicate with the active page. 
-*   **Behavior**: Typing in the header instantly filters the table/list on your current page (Cases, Clients, or Hearings).
+**PROPRIETARY SOFTWARE - ALL RIGHTS RESERVED**
 
----
-
-## 📦 Deployment Checklist
-
-1.  **Environment**: Set `DATABASE_URL` and `JWT_SECRET` in Vercel.
-2.  **Database**: Run `npx prisma migrate deploy` to sync your Supabase schema.
-3.  **Optimizer**: Ensure `OPTIMIZER_URL` and `OPTIMIZER_KEY` are set for real-time UI updates.
+This project is the exclusive property of **Tahsin Abir / Lawyer Case Diary System**.
+- **Usage**: Unauthorized use of the backend, database schemas, or case management logic is strictly prohibited.
+- **Privacy**: This system holds sensitive legal case records. Unauthorized access or replication can lead to legal prosecution.
+- **License**: Full details can be found in the [LICENSE](./LICENSE) file.
 
 ---
-
-## 📁 Project Structure
-
-```text
-src/
-├── app/              # Next.js Routes & APIs
-├── components/       # UI Components (Drawers, Forms, Nav)
-├── context/          # Global State (Search, Auth)
-├── lib/              
-│   ├── services/     # Business Logic (Case/Client operations)
-│   ├── auth-server/  # Security & Identity logic
-│   └── db/           # Database Client
-└── prisma/           # Database Schema & Migrations
-```
-
----
-*© 2026 Antigravity Judicial Systems. Professional Legal SaaS Core.*
+*© 2026 Tahsin Abir / Lawyer Case Diary System. Professional Legal SaaS Core.*

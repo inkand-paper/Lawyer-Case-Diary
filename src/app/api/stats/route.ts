@@ -18,6 +18,15 @@ export async function GET() {
   const userId = await getAuthUser();
   if (!userId) return apiErrors.UNAUTHORIZED("Electronic session expired or invalid.");
 
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { emailVerified: true }
+  });
+
+  if (!user) {
+    return apiErrors.UNAUTHORIZED("Practitioner profile not found. Please re-register.");
+  }
+
   try {
     // 1. Calculate the start of today for inclusive hearing counting
     const todayStart = new Date();
@@ -49,6 +58,7 @@ export async function GET() {
         verifiedClients: clientCount,
         upcomingHearings: hearingCount,
         uptime: "99.9%",
+        emailVerified: user.emailVerified
       },
       recentActions: recentCases,
     }, "Intelligence matrix synchronized.");

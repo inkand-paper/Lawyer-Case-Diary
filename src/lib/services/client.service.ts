@@ -15,14 +15,13 @@ export interface CreateClientData {
 
 /**
  * Registers a new client in the system.
- * @param userId - Owner practitioner ID.
- * @param data - Client's personal/legal contact info.
  */
-export const createClient = async (userId: string, data: CreateClientData) => {
+export const createClient = async (userId: string, chamberId: string | null, data: CreateClientData) => {
   const client = await db.client.create({
     data: {
       ...data,
       userId,
+      chamberId,
     },
   });
 
@@ -31,24 +30,29 @@ export const createClient = async (userId: string, data: CreateClientData) => {
 };
 
 /**
- * Retrieves the full client directory for a specific lawyer.
+ * Retrieves the full client directory for a specific lawyer or their chamber, with mandatory pagination.
  */
-export const getClients = async (userId: string) => {
+export const getClients = async (userId: string, chamberId: string | null, limit: number = 50, offset: number = 0) => {
   return await db.client.findMany({
-    where: { userId },
+    where: chamberId ? { chamberId } : { userId },
     include: {
       _count: { select: { cases: true } }
     },
     orderBy: { name: "asc" },
+    take: limit,
+    skip: offset,
   });
 };
 
 /**
  * Updates an existing client's contact information.
  */
-export const updateClient = async (userId: string, clientId: string, data: Partial<CreateClientData>) => {
+export const updateClient = async (userId: string, chamberId: string | null, clientId: string, data: Partial<CreateClientData>) => {
   const updatedClient = await db.client.update({
-    where: { id: clientId, userId },
+    where: { 
+      id: clientId,
+      OR: chamberId ? [{ chamberId }] : [{ userId }]
+    },
     data,
   });
 
@@ -59,37 +63,11 @@ export const updateClient = async (userId: string, clientId: string, data: Parti
 /**
  * Removes a client record from the registry.
  * ─────────────────────────────────────────────────────────────
- * SAFETY: Implements manual cascading deletes for all associated 
- * cases, hearings, notes, and payments to prevent FK violations.
+ * SAFETY: Enforces the Backend Engineering Spec to never hard-delete
+ * critical legal data. Throws a policy error instead.
  * ─────────────────────────────────────────────────────────────
  */
 export const deleteClient = async (userId: string, clientId: string) => {
-  return await db.$transaction(async (tx) => {
-    // 1. Recover all case IDs belonging to this client and user
-    const clientCases = await tx.case.findMany({
-      where: { clientId, userId },
-      select: { id: true }
-    });
-    
-    const caseIds = clientCases.map(c => c.id);
-
-    if (caseIds.length > 0) {
-      // 2. Clear all nested dependencies for these cases
-      await tx.hearing.deleteMany({ where: { caseId: { in: caseIds } } });
-      await tx.note.deleteMany({ where: { caseId: { in: caseIds } } });
-      await tx.payment.deleteMany({ where: { caseId: { in: caseIds } } });
-      await tx.reminder.deleteMany({ where: { caseId: { in: caseIds } } });
-
-      // 3. Delete the cases themselves
-      await tx.case.deleteMany({ where: { id: { in: caseIds }, userId } });
-    }
-
-    // 4. Finally, delete the client entity
-    const deletedClient = await tx.client.delete({
-      where: { id: clientId, userId },
-    });
-
-    await revalidateTags(["clients", "cases", "dashboard"]);
-    return deletedClient;
-  });
+  // Enforcing Backend Spec: Never hard-delete clients.
+  throw new Error("Hard deleting clients is prohibited by system policy. Please retain the client record for legal compliance and close their associated cases instead.");
 };

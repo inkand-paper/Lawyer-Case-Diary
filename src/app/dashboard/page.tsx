@@ -2,10 +2,9 @@
 
 /**
  * ============================================================
- * Dashboard — Central Intelligence Command
+ * Dashboard — Overview
  * ─────────────────────────────────────────────────────────────
- * Real-time synthesis of the legal ecosystem.
- * Aggregates statistics, recent registry activity, and system health.
+ * View of your cases and status.
  * ============================================================
  */
 
@@ -55,18 +54,48 @@ export default function Dashboard() {
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
         <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-          Synchronizing Intelligence...
+          Loading...
         </p>
       </div>
     );
   }
 
   const stats = [
-    { label: "Active Litigations", value: data?.stats?.activeCases || "0", icon: Briefcase, trend: "Live Tracker" },
-    { label: "Verified Clients", value: data?.stats?.verifiedClients || "0", icon: Users, trend: "Registry Records" },
-    { label: "Upcoming Hearings", value: data?.stats?.upcomingHearings || "0", icon: Calendar, trend: "Docket Monitor" },
-    { label: "System Fidelity", value: data?.stats?.uptime || "99.9%", icon: ShieldCheck, trend: "Encrypted" },
+    { label: "Active Cases", value: data?.stats?.activeCases || "0", icon: Briefcase, trend: "Cases" },
+    { label: "Total Clients", value: data?.stats?.verifiedClients || "0", icon: Users, trend: "Clients" },
+    { label: "Hearings", value: data?.stats?.upcomingHearings || "0", icon: Calendar, trend: "Hearings" },
+    { label: "System Status", value: data?.stats?.uptime || "99.9%", icon: ShieldCheck, trend: "Secured" },
   ];
+
+  if (data && !data.stats?.emailVerified) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] gap-8 p-6 text-center">
+        <div className="p-6 rounded-[2.5rem]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "var(--foreground)" }}>
+            <Activity className="w-10 h-10 animate-pulse" style={{ color: "var(--background)" }} />
+          </div>
+          <h2 className="text-3xl font-black tracking-tighter mb-4" style={{ color: "var(--foreground)" }}>
+             Verification Required
+          </h2>
+          <p className="text-sm font-bold max-w-sm mx-auto mb-8 leading-relaxed" style={{ color: "var(--muted)" }}>
+            Please verify your email to access your account and case files.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:opacity-80"
+              style={{ background: "var(--foreground)", color: "var(--background)" }}
+            >
+              Verify Email
+            </button>
+            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+              Once verified, your account will unlock.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 pb-10">
@@ -74,10 +103,10 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter" style={{ color: "var(--foreground)" }}>
-            Command Intelligence
+            Dashboard
           </h1>
           <p className="font-bold text-base" style={{ color: "var(--muted)" }}>
-            Real-time status of your legal ecosystem.
+            Overview of your cases and status.
           </p>
         </div>
         <button
@@ -86,7 +115,7 @@ export default function Dashboard() {
           style={{ background: "var(--foreground)", color: "var(--background)" }}
         >
           <Plus className="w-4 h-4" />
-          Initialize New Case
+          New Case
         </button>
       </div>
 
@@ -133,10 +162,10 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-xl font-black tracking-tighter" style={{ color: "var(--foreground)" }}>
-              Recent Registry Activity
+              Recent Activity
             </h3>
             <Link href="/dashboard/cases" className="text-[10px] font-black uppercase tracking-widest underline underline-offset-4" style={{ color: "var(--muted)" }}>
-              View Repository
+              View All Cases
             </Link>
           </div>
           <div
@@ -199,10 +228,10 @@ export default function Dashboard() {
                   </div>
                   <div className="space-y-2">
                     <h4 className="text-xl font-black uppercase tracking-tighter" style={{ color: "var(--foreground)" }}>
-                      Registry is Standby
+                      No Recent Activity
                     </h4>
                     <p className="text-sm font-medium max-w-xs mx-auto" style={{ color: "var(--muted)" }}>
-                      No recent actions detected. Initialize your first case record to begin intelligence aggregation.
+                      Add your first case to see activity here.
                     </p>
                   </div>
                 </motion.div>
@@ -211,10 +240,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Registry Health */}
+        {/* System Health */}
         <div className="space-y-4">
           <h3 className="text-xl font-black tracking-tighter px-2" style={{ color: "var(--foreground)" }}>
-            Registry Health
+            System Health
           </h3>
           <div
             className="p-8 rounded-[2.5rem] h-full space-y-8 flex flex-col"
@@ -229,7 +258,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-widest" style={{ color: "var(--foreground)" }}>
-                  Protocol Sync
+                  System Sync
                 </p>
                 <p className="text-[10px] font-bold uppercase mt-1 flex items-center gap-1.5" style={{ color: "var(--muted)" }}>
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--foreground)" }} />
@@ -262,7 +291,7 @@ export default function Dashboard() {
               style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
             >
               <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                Registry Summary
+                System Summary
               </p>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-bold">

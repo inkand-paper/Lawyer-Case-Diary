@@ -18,11 +18,12 @@ export interface CreateCaseData {
 /**
  * Creates a new legal case record.
  */
-export const createCase = async (userId: string, data: CreateCaseData) => {
+export const createCase = async (userId: string, chamberId: string | null, data: CreateCaseData) => {
   const newCase = await db.case.create({
     data: {
       ...data,
       userId,
+      chamberId,
     },
     include: {
       client: true,
@@ -34,22 +35,27 @@ export const createCase = async (userId: string, data: CreateCaseData) => {
 };
 
 /**
- * Retrieves all cases owned by a specific practitioner.
+ * Retrieves all cases owned by a specific practitioner or their chamber, with mandatory pagination.
  */
-export const getCases = async (userId: string) => {
+export const getCases = async (userId: string, chamberId: string | null, limit: number = 50, offset: number = 0) => {
   return await db.case.findMany({
-    where: { userId },
+    where: chamberId ? { chamberId } : { userId },
     include: { client: true },
     orderBy: { createdAt: "desc" },
+    take: limit,
+    skip: offset,
   });
 };
 
 /**
  * Retrieves a single case with full relational depth.
  */
-export const getCaseById = async (userId: string, caseId: string) => {
+export const getCaseById = async (userId: string, chamberId: string | null, caseId: string) => {
   return await db.case.findFirst({
-    where: { id: caseId, userId },
+    where: { 
+      id: caseId,
+      OR: chamberId ? [{ chamberId }] : [{ userId }]
+    },
     include: {
       client: true,
       hearings: { orderBy: { hearingDate: "asc" } },
@@ -62,9 +68,12 @@ export const getCaseById = async (userId: string, caseId: string) => {
 /**
  * Updates an existing case record.
  */
-export const updateCase = async (userId: string, caseId: string, data: Partial<CreateCaseData> & { status?: string }) => {
+export const updateCase = async (userId: string, chamberId: string | null, caseId: string, data: Partial<CreateCaseData> & { status?: string }) => {
   const updatedCase = await db.case.update({
-    where: { id: caseId, userId },
+    where: { 
+      id: caseId,
+      OR: chamberId ? [{ chamberId }] : [{ userId }]
+    },
     data,
   });
 
@@ -73,28 +82,19 @@ export const updateCase = async (userId: string, caseId: string, data: Partial<C
 };
 
 /**
- * Permanently removes a case record (Hard Delete).
- * ─────────────────────────────────────────────────────────────
- * SAFETY: Implements manual cascading deletes for all associated 
- * hearings, notes, and payments to prevent FK violations.
- * ─────────────────────────────────────────────────────────────
+ * Soft deletes a case by changing its status to CLOSED.
  */
-export const deleteCase = async (userId: string, caseId: string) => {
-  return await db.$transaction(async (tx) => {
-    // 1. Delete all associated sub-records
-    await tx.hearing.deleteMany({ where: { caseId } });
-    await tx.note.deleteMany({ where: { caseId } });
-    await tx.payment.deleteMany({ where: { caseId } });
-    await tx.reminder.deleteMany({ where: { caseId } });
-
-    // 2. Delete the primary case record
-    const deletedCase = await tx.case.delete({
-      where: { id: caseId, userId },
-    });
-
-    await revalidateTags(["cases", "dashboard"]);
-    return deletedCase;
+export const deleteCase = async (userId: string, chamberId: string | null, caseId: string) => {
+  const closedCase = await db.case.update({
+    where: { 
+      id: caseId,
+      OR: chamberId ? [{ chamberId }] : [{ userId }]
+    },
+    data: { status: "CLOSED" }
   });
+
+  await revalidateTags(["cases", "dashboard", `case:${caseId}`]);
+  return closedCase;
 };
 
 /**

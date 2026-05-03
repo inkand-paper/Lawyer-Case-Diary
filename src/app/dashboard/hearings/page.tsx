@@ -47,7 +47,7 @@ export default function HearingsPage() {
       if (json.success) {
         setHearings(json.data);
       } else {
-        setError(json.error?.message || "Failed to load judicial docket.");
+        setError(json.error?.message || "Failed to load hearings.");
       }
     } catch {
       setError("Network protocol synchronization failure.");
@@ -98,7 +98,7 @@ export default function HearingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--foreground)" }}>
-            Judicial Docket
+            Hearings
           </h1>
           <p className="font-medium" style={{ color: "var(--muted)" }}>
             Track and manage your upcoming procedural session timeline.
@@ -209,7 +209,7 @@ export default function HearingsPage() {
                     </div>
                     <h3 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2.5 truncate" style={{ color: "var(--foreground)" }}>
                       <Scale className="w-5 h-5 shrink-0" style={{ color: "var(--muted)" }} />
-                      <span className="truncate">{h.case?.title || "Registry Record"}</span>
+                      <span className="truncate">{h.case?.title || "Case Record"}</span>
                     </h3>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold" style={{ color: "var(--muted)" }}>
                       <div className="flex items-center gap-1.5">

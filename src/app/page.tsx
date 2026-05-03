@@ -1,10 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Gavel, Shield, Zap, Scale } from "lucide-react";
-
 export default function Home() {
-  const inputBg = { background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" };
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Adding a timestamp ensures we bypass any browser-level caching
+    fetch(`/api/me?t=${Date.now()}`, { cache: "no-store" })
+      .then(res => res.json())
+      .then(res => setIsLoggedIn(res.success))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "var(--background)", color: "var(--foreground)" }}>
@@ -20,16 +28,27 @@ export default function Home() {
           <span className="font-black" style={{ color: "var(--foreground)" }}>LAWYER DIARY</span>
         </Link>
         <nav className="flex items-center gap-6">
-          <Link href="/login" className="text-sm font-bold transition-colors" style={{ color: "var(--muted)" }}>
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:opacity-80"
-            style={{ background: "var(--foreground)", color: "var(--background)" }}
-          >
-            Get Started
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="text-sm font-black px-8 py-3 rounded-2xl bg-blue-600 text-white uppercase tracking-widest shadow-xl hover:bg-blue-500 transition-all"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-bold transition-colors" style={{ color: "var(--muted)" }}>
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-bold px-5 py-2.5 rounded-full transition-all hover:opacity-80"
+                style={{ background: "var(--foreground)", color: "var(--background)" }}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </nav>
       </header>
 
@@ -41,7 +60,7 @@ export default function Home() {
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
-            Backend First Legal Engine
+            Simple & Fast Case Management
           </div>
 
           {/* Hero */}
@@ -49,13 +68,13 @@ export default function Home() {
             className="text-4xl sm:text-5xl lg:text-8xl font-black tracking-tighter leading-[1.05]"
             style={{ color: "var(--foreground)" }}
           >
-            Your Digital Court Brain.<br />
-            <span style={{ color: "var(--muted)" }}>Built for the Elite.</span>
+            Manage Your Cases.<br />
+            <span style={{ color: "var(--muted)" }}>Without the Clutter.</span>
           </h1>
 
           <p className="text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed font-medium" style={{ color: "var(--muted)" }}>
-            The premium Lawyer Case Diary SaaS. Real-time updates, automated reminders,
-            and a developer-level dashboard for modern legal professionals.
+            A straightforward app for lawyers to track cases, clients, and court dates. 
+            Real-time updates, clear design, and zero learning curve.
           </p>
 
           {/* CTA Buttons */}

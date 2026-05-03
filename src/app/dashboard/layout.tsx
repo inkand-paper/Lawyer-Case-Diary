@@ -14,6 +14,7 @@
  */
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { BottomNav } from "@/components/dashboard/BottomNav";
 import { Search, Shield, Zap, X, Scale } from "lucide-react";
@@ -44,7 +45,7 @@ function HeaderContent() {
       {/* Identity & Search Section */}
       <div className="flex items-center gap-4 lg:gap-12 flex-1">
         {/* Desktop Brand */}
-        <div className="hidden lg:flex items-center gap-3">
+        <Link href="/" className="hidden lg:flex items-center gap-3 transition-opacity hover:opacity-80">
           <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shadow-lg">
             <Shield className="w-5 h-5 text-background" />
           </div>
@@ -56,21 +57,21 @@ function HeaderContent() {
               Verified Identity
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Mobile Brand Logo */}
-        <div className="lg:hidden flex items-center gap-2 shrink-0">
+        <Link href="/" className="lg:hidden flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity">
           <div className="w-9 h-9 rounded-lg bg-foreground flex items-center justify-center">
             <Scale className="w-5 h-5 text-background" />
           </div>
-        </div>
+        </Link>
 
         {/* Global Registry Search */}
         <div className="relative flex-1 max-w-[160px] sm:max-w-md group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors group-focus-within:text-foreground" style={{ color: "var(--muted)" }} />
           <input
             type="text"
-            placeholder="Quick registry search..."
+            placeholder="Quick search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-11 lg:h-12 rounded-2xl pl-12 pr-10 text-xs font-bold focus:outline-none transition-all"

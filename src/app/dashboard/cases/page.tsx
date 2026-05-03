@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { useSearch } from "@/context/SearchContext";
 
 export default function CasesPage() {
@@ -146,7 +147,7 @@ export default function CasesPage() {
           {loading ? (
             <div className="py-20 text-center flex flex-col items-center gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-muted" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted">Recovering Records...</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted">Loading...</p>
             </div>
           ) : filteredCases.length === 0 ? (
             <div className="py-20 text-center flex flex-col items-center gap-4 opacity-40">
@@ -175,24 +176,16 @@ export default function CasesPage() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted mt-0.5">{c.caseNumber}</p>
                     </div>
                   </div>
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border shrink-0"
-                    style={c.status === "ACTIVE" 
-                      ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
-                      : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
-                    }
-                  >
-                    {c.status}
-                  </span>
+                  <StatusBadge status={c.status} className="shrink-0" />
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-base">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Client Entity</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Client</span>
                     <span className="text-xs font-bold text-foreground">{c.client?.name || "N/A"}</span>
                   </div>
                   <div className="flex flex-col gap-1 items-end text-right">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Presiding Judge</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest text-muted">Judge</span>
                     <span className="text-xs font-bold text-foreground truncate max-w-[120px]">{c.judgeName || "Assigned"}</span>
                   </div>
                 </div>
@@ -207,7 +200,7 @@ export default function CasesPage() {
             <table className="w-full text-left">
               <thead>
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
-                  {["Case Profile", "Client Entity", "Presiding Judge", "Status", "Actions"].map((h, i) => (
+                  {["Case Profile", "Client", "Judge", "Status", "Actions"].map((h, i) => (
                     <th key={h} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
                       {h}
                     </th>
@@ -220,7 +213,7 @@ export default function CasesPage() {
                     <td colSpan={5} className="px-8 py-20 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--muted)" }} />
-                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Recovering Records...</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Loading...</p>
                       </div>
                     </td>
                   </tr>
@@ -271,15 +264,7 @@ export default function CasesPage() {
                         </div>
                       </td>
                       <td className="px-8 py-6">
-                        <span
-                          className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                          style={c.status === "ACTIVE" 
-                            ? { background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }
-                            : { background: "var(--surface-2)", color: "var(--muted)", borderColor: "var(--border)" }
-                          }
-                        >
-                          {c.status}
-                        </span>
+                        <StatusBadge status={c.status} />
                       </td>
                       <td className="px-8 py-6 text-right">
                         <div className="flex items-center gap-2 justify-end">

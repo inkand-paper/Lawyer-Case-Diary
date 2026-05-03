@@ -16,21 +16,42 @@ import {
   Users,
   Calendar,
   Settings,
+  ShieldAlert,
+  UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+  const [plan, setPlan] = useState<string>("ESSENTIAL");
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          setRole(res.data.role);
+          setPlan(res.data.plan || "ESSENTIAL");
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isAdmin = role === "ADMIN";
 
   const navItems = [
     { icon: LayoutDashboard, label: "Feed", href: "/dashboard" },
     { icon: Briefcase, label: "Cases", href: "/dashboard/cases" },
     { icon: Users, label: "Clients", href: "/dashboard/clients" },
+    ...(plan === "ULTIMATE" || isAdmin ? [{ icon: UserPlus, label: "Team", href: "/dashboard/team" }] : []),
     { icon: Calendar, label: "Dockets", href: "/dashboard/hearings" },
     { icon: Settings, label: "Config", href: "/dashboard/settings" },
+    ...(isAdmin ? [{ icon: ShieldAlert, label: "Admin", href: "/admin" }] : []),
   ];
 
   return (

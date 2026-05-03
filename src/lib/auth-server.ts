@@ -62,3 +62,22 @@ export async function getAuthUser() {
     return null;
   }
 }
+/**
+ * Verifies authentication and returns full user context (including chamberId).
+ */
+export async function getAuthContext() {
+  const userId = await getAuthUser();
+  if (!userId) return null;
+
+  return await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      plan: true,
+      chamberId: true,
+    },
+  });
+}

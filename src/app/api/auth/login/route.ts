@@ -43,8 +43,16 @@ export async function POST(req: Request) {
       return apiErrors.UNAUTHORIZED("Invalid credentials provided.", context);
     }
 
-    // 4. Token Provisioning
-    const token = await signToken({ userId: user.id, email: user.email });
+    // 4. Verification Compliance
+    if (!user.emailVerified) {
+      return apiErrors.UNAUTHORIZED(
+        "Identity verification required. Please check your professional inbox for the activation link.", 
+        context
+      );
+    }
+
+    // 5. Token Provisioning
+    const token = await signToken({ userId: user.id, email: user.email, role: user.role });
 
     // 5. Response Construction (Web + Mobile Support)
     const response = successResponse(

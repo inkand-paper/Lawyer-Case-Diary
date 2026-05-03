@@ -39,22 +39,35 @@ export async function POST(req: Request) {
     // 3. Password Security
     const passwordHash = await hashPassword(validatedData.password);
 
-    // 4. Data Persistence
+    // 4. Generate verification token
+    const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // 5. Data Persistence
     const user = await db.user.create({
       data: {
         name: validatedData.name,
         email: validatedData.email,
         passwordHash,
+        emailVerified: false,
+        verificationToken
       },
     });
 
-    // 5. Auth Token Generation
+    // 6. Send legal verification email
+    const { sendLegalVerificationEmail } = await import("@/lib/mail");
+    await sendLegalVerificationEmail({
+      email: user.email,
+      userName: user.name,
+      token: verificationToken
+    }).catch(console.error);
+
+    // 7. Auth Token Generation
     const token = await signToken({ userId: user.id, email: user.email });
 
-    // 6. Success Response with Secure Cookie (Web + Mobile Support)
+    // 8. Success Response with Secure Cookie (Web + Mobile Support)
     const response = successResponse(
-      { id: user.id, name: user.name, email: user.email, token },
-      "Regulatory account created and authenticated successfully.",
+      { id: user.id, name: user.name, email: user.email, token, emailVerified: false },
+      "Regulatory account created. Please verify your email to unlock your diary.",
       201
     );
 
