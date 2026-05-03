@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 6. Professional Error Log
     return apiErrors.SERVER_ERROR(
       "A fatal system state occurred during authentication.",

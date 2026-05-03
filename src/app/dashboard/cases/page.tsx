@@ -17,7 +17,6 @@ import {
   Briefcase,
   MapPin,
   Scale,
-  MoreHorizontal,
   Filter,
   Loader2,
   ChevronRight,
@@ -26,9 +25,10 @@ import {
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSearch } from "@/context/SearchContext";
+import { Case } from "@/lib/types";
 
 export default function CasesPage() {
-  const [cases, setCases] = useState<any[]>([]);
+  const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -39,7 +39,6 @@ export default function CasesPage() {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "CLOSED">("ALL");
 
   const fetchCases = async () => {
-    setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/cases");
@@ -62,11 +61,11 @@ export default function CasesPage() {
 
   const filteredCases = useMemo(() => {
     return cases.filter((c) => {
-      const matchesSearch =
-        c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.client?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const titleMatch = c.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const numMatch = c.caseNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      const clientMatch = c.client?.name.toLowerCase().includes(searchQuery.toLowerCase());
       
+      const matchesSearch = titleMatch || numMatch || clientMatch;
       const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
       
       return matchesSearch && matchesStatus;
