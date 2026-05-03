@@ -300,7 +300,7 @@ export default function TeamHub() {
                   <Mail className="w-3 h-3" /> Outgoing Requests
                 </h3>
                 <div className="space-y-4">
-                  {chamber.invites?.length === 0 && (
+                  {(chamber.invites?.length ?? 0) === 0 && (
                     <div className="p-10 rounded-[2rem] border border-dashed border-[var(--border)] text-center space-y-3">
                       <p className="text-[9px] font-black uppercase tracking-widest opacity-30">No pending requests</p>
                     </div>

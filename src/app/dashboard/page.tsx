@@ -186,7 +186,7 @@ export default function Dashboard() {
             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
           >
             <AnimatePresence mode="wait">
-              {data?.recentActions?.length > 0 ? (
+              {(data?.recentActions?.length ?? 0) > 0 ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
