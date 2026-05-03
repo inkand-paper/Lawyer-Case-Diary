@@ -24,9 +24,10 @@ import {
   Mail,
 } from "lucide-react";
 import { SettingsEditorDrawer } from "@/components/dashboard/SettingsEditorDrawer";
+import { User as UserType } from "@/lib/types";
 
 export default function SettingsPage() {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");

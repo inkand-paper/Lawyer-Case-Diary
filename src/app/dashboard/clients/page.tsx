@@ -25,9 +25,10 @@ import {
 } from "lucide-react";
 import { ClientEditorDrawer } from "@/components/dashboard/ClientEditorDrawer";
 import { useSearch } from "@/context/SearchContext";
+import { Client } from "@/lib/types";
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -37,7 +38,6 @@ export default function ClientsPage() {
   const { searchQuery, setSearchQuery } = useSearch();
 
   const fetchClients = async () => {
-    setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/clients");

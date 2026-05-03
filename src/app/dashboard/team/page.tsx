@@ -15,12 +15,13 @@ import {
   AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { User, Chamber, Invitation } from "@/lib/types";
 
 export default function TeamHub() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [chamber, setChamber] = useState<any>(null);
-  const [invites, setInvites] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [chamber, setChamber] = useState<Chamber | null>(null);
+  const [invites, setInvites] = useState<Invitation[]>([]);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [error, setError] = useState("");
@@ -266,7 +267,7 @@ export default function TeamHub() {
                   <Users className="w-3 h-3" /> Practitioner Directory
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  {chamber.members.map((member: any) => (
+                  {chamber.members?.map((member) => (
                     <div key={member.id} className="p-6 rounded-[2rem] bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between hover:border-blue-500/30 transition-all group">
                       <div className="flex items-center gap-5">
                         <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl font-black text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-lg">
@@ -299,12 +300,12 @@ export default function TeamHub() {
                   <Mail className="w-3 h-3" /> Outgoing Requests
                 </h3>
                 <div className="space-y-4">
-                  {chamber.invites.length === 0 && (
+                  {chamber.invites?.length === 0 && (
                     <div className="p-10 rounded-[2rem] border border-dashed border-[var(--border)] text-center space-y-3">
                       <p className="text-[9px] font-black uppercase tracking-widest opacity-30">No pending requests</p>
                     </div>
                   )}
-                  {chamber.invites.map((inv: any) => (
+                  {chamber.invites?.map((inv) => (
                     <div key={inv.id} className="p-5 rounded-2xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-between">
                       <div className="space-y-0.5">
                         <p className="text-[11px] font-bold truncate max-w-[150px]">{inv.email}</p>
