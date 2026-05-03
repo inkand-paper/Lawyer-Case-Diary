@@ -14,6 +14,9 @@ export interface User {
   plan: UserPlan;
   chamberId?: string | null;
   emailVerified: boolean;
+  _count?: {
+    cases: number;
+  };
 }
 
 export interface Client {
