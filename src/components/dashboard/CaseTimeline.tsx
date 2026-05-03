@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface TimelineItem {
+export interface TimelineItem {
   id: string;
   type: "CREATED" | "HEARING" | "PAYMENT" | "NOTE" | "CLOSED";
   title: string;
