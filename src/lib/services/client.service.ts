@@ -67,7 +67,7 @@ export const updateClient = async (userId: string, chamberId: string | null, cli
  * critical legal data. Throws a policy error instead.
  * ─────────────────────────────────────────────────────────────
  */
-export const deleteClient = async () => {
+export const deleteClient = async (userId: string, clientId: string) => {
   // Enforcing Backend Spec: Never hard-delete clients.
   throw new Error("Hard deleting clients is prohibited by system policy. Please retain the client record for legal compliance and close their associated cases instead.");
 };
