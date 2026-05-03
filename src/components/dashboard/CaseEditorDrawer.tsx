@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Crown,
 } from "lucide-react";
+import { Case, Client, Hearing } from "@/lib/types";
 
 interface CaseEditorDrawerProps {
   isOpen: boolean;
@@ -53,20 +54,14 @@ export function CaseEditorDrawer({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [schedulingHearing, setSchedulingHearing] = useState(false);
-  const [caseData, setCaseData] = useState<any>(null);
-  const [clients, setClients] = useState<any[]>([]);
+  const [caseData, setCaseData] = useState<Partial<Case> | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
   const [error, setError] = useState("");
 
   const quickDateRef = useRef<HTMLInputElement>(null);
   const quickNotesRef = useRef<HTMLInputElement>(null);
 
-  const fetchClients = async () => {
-    try {
-      const res = await fetch("/api/clients");
-      const json = await res.json();
-      if (json.success) setClients(json.data);
-    } catch {}
-  };
+
 
   const fetchCase = async (id: string) => {
     setLoading(true);
@@ -87,25 +82,45 @@ export function CaseEditorDrawer({
   };
 
   useEffect(() => {
+    let ignore = false;
     if (isOpen) {
-      fetchClients();
-      if (caseId) {
-        fetchCase(caseId);
-      } else {
-        setCaseData({
-          title: "",
-          caseNumber: "",
-          courtName: "",
-          judgeName: "",
-          clientId: "",
-          status: "ACTIVE",
-        });
-        setError("");
-      }
-    } else {
-      setCaseData(null);
-      setError("");
+      const init = async () => {
+        try {
+          // fetch clients
+          const cRes = await fetch("/api/clients");
+          const cJson = await cRes.json();
+          if (!ignore && cJson.success) setClients(cJson.data);
+
+          if (caseId) {
+            setLoading(true);
+            const res = await fetch(`/api/cases/${caseId}`);
+            const json = await res.json();
+            if (!ignore) {
+              if (json.success) setCaseData(json.data);
+              else setError(json.error?.message || "Failed to load case.");
+            }
+          } else {
+            if (!ignore) {
+              setCaseData({
+                title: "",
+                caseNumber: "",
+                courtName: "",
+                judgeName: "",
+                clientId: "",
+                status: "ACTIVE",
+              });
+              setError("");
+            }
+          }
+        } catch {
+          if (!ignore) setError("Network error.");
+        } finally {
+          if (!ignore) setLoading(false);
+        }
+      };
+      init();
     }
+    return () => { ignore = false; };
   }, [isOpen, caseId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -117,7 +132,7 @@ export function CaseEditorDrawer({
     const method = caseId ? "PUT" : "POST";
     const endpoint = caseId ? `/api/cases/${caseId}` : `/api/cases`;
 
-    const payload: Record<string, any> = {
+    const payload: Record<string, string | number | boolean | undefined | null> = {
       title: formData.get("title"),
       caseNumber: formData.get("caseNumber"),
       courtName: formData.get("courtName"),
@@ -412,7 +427,7 @@ export function CaseEditorDrawer({
                       </h3>
 
                       <div className="space-y-3">
-                        {caseData.hearings?.map((h: any) => (
+                        {caseData.hearings?.map((h: Hearing) => (
                           <div
                             key={h.id}
                             className="p-4 rounded-2xl flex items-center justify-between"
@@ -491,7 +506,7 @@ export function CaseEditorDrawer({
   );
 }
 
-function UserIcon(props: any) {
+function UserIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />

@@ -21,20 +21,23 @@ import { Search, Shield, Zap, X, Scale } from "lucide-react";
 import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
 import { ThemeGlider } from "@/components/dashboard/ThemeGlider";
 import { SearchProvider, useSearch } from "@/context/SearchContext";
+import { User as UserType } from "@/lib/types";
 
 function HeaderContent() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const { searchQuery, setSearchQuery } = useSearch();
 
   useEffect(() => {
+    let ignore = false;
     const fetchUser = async () => {
       try {
         const res = await fetch("/api/me");
         const json = await res.json();
-        if (json.success) setUser(json.data);
+        if (!ignore && json.success) setUser(json.data);
       } catch {}
     };
     fetchUser();
+    return () => { ignore = true; };
   }, []);
 
   return (

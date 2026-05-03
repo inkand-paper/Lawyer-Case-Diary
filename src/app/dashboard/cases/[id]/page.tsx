@@ -36,7 +36,7 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
       { id: "2", type: "HEARING", title: "Preliminary Hearing", date: "Feb 05, 2026", description: "Evidence submission and witness scheduling.", isCompleted: true },
       { id: "3", type: "PAYMENT", title: "Retainer Processed", date: "Feb 08, 2026", description: "Initial legal fees handled successfully.", isCompleted: true },
       { id: "4", type: "HEARING", title: "Discovery Phase", date: "Upcoming: Apr 22, 2026", description: "Verification of documentation and cross-examination scheduling.", isCompleted: false },
-    ] as any
+    ] as { id: string; type: string; title: string; date: string; description: string; isCompleted: boolean }[]
   };
 
   return (

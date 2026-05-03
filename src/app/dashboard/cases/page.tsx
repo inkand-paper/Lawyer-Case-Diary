@@ -57,7 +57,23 @@ export default function CasesPage() {
   };
 
   useEffect(() => {
-    fetchCases();
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/cases");
+        const json = await res.json();
+        if (!ignore) {
+          if (json.success) setCases(json.data);
+          else setError(json.error?.message || "Failed to load records.");
+        }
+      } catch {
+        if (!ignore) setError("Network protocol failure.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   const filteredCases = useMemo(() => {
@@ -114,7 +130,7 @@ export default function CasesPage() {
         <div className="flex items-center gap-2">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "CLOSED")}
             className="h-full px-5 rounded-2xl font-bold text-xs uppercase tracking-widest outline-none appearance-none cursor-pointer"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
           >

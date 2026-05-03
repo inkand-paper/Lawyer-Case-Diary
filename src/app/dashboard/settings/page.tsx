@@ -15,7 +15,6 @@ import {
   User,
   Lock,
   Bell,
-  Database,
   ShieldCheck,
   CreditCard,
   Loader2,
@@ -45,7 +44,20 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    fetchUser();
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/me");
+        const json = await res.json();
+        if (!ignore && json.success) setUserData(json.data);
+      } catch (e) {
+        console.error("Profile sync failure", e);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   const sections = [

@@ -10,30 +10,37 @@
  */
 
 import { useState, useEffect } from "react";
-import { Bell, Clock, Scale, AlertCircle, Loader2 } from "lucide-react";
+import { Bell, Clock, Scale, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Hearing } from "@/lib/types";
 
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<Hearing[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchAlerts = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/notifications/upcoming");
-      const json = await res.json();
-      if (json.success) setAlerts(json.data);
-    } catch {}
-    finally { setLoading(false); }
-  };
+
 
   useEffect(() => {
-    fetchAlerts();
+    let ignore = false;
+    const fetchAlertsInternal = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/notifications/upcoming");
+        const json = await res.json();
+        if (!ignore && json.success) setAlerts(json.data);
+      } catch {}
+      finally { if (!ignore) setLoading(false); }
+    };
+
+    fetchAlertsInternal();
     // Poll every 5 minutes for new alerts
-    const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchAlertsInternal, 5 * 60 * 1000);
+    return () => {
+      ignore = true;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -119,7 +126,7 @@ export function NotificationDropdown() {
   );
 }
 
-function CheckCircle(props: any) {
+function CheckCircle(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />

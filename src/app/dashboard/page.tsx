@@ -10,18 +10,17 @@
 
 import { useEffect, useState } from "react";
 import {
-  Scale,
-  Briefcase,
-  Users,
-  Calendar,
-  Activity,
-  TrendingUp,
   Clock,
   ShieldCheck,
   Plus,
   Database,
   Loader2,
   ArrowRight,
+  Activity,
+  TrendingUp,
+  Briefcase,
+  Users,
+  Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -59,7 +58,22 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchStats();
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const result = await res.json();
+        if (!ignore && result.success) {
+          setData(result.data);
+        }
+      } catch (err) {
+        console.error("Live feed failure:", err);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   if (loading) {

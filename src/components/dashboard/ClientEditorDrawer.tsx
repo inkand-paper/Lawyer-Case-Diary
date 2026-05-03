@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Fingerprint,
 } from "lucide-react";
+import { Client } from "@/lib/types";
 
 interface ClientEditorDrawerProps {
   isOpen: boolean;
@@ -47,38 +48,36 @@ export function ClientEditorDrawer({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [clientData, setClientData] = useState<any>(null);
-
-  const fetchClient = async (id: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/clients/${id}`);
-      const json = await res.json();
-      if (json.success) {
-        setClientData(json.data);
-      } else {
-        setError(json.error?.message || "Failed to load client record.");
-      }
-    } catch {
-      setError("Network protocol synchronization failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [clientData, setClientData] = useState<Partial<Client> | null>(null);
 
   useEffect(() => {
+    let ignore = false;
     if (isOpen) {
-      if (clientId) {
-        fetchClient(clientId);
-      } else {
-        setClientData({ name: "", email: "", phone: "", address: "" });
-        setError("");
-      }
-    } else {
-      setClientData(null);
-      setError("");
+      const init = async () => {
+        try {
+          if (clientId) {
+            setLoading(true);
+            const res = await fetch(`/api/clients/${clientId}`);
+            const json = await res.json();
+            if (!ignore) {
+              if (json.success) setClientData(json.data);
+              else setError(json.error?.message || "Failed to load client.");
+            }
+          } else {
+            if (!ignore) {
+              setClientData({ name: "", email: "", phone: "", address: "" });
+              setError("");
+            }
+          }
+        } catch {
+          if (!ignore) setError("Network error.");
+        } finally {
+          if (!ignore) setLoading(false);
+        }
+      };
+      init();
     }
+    return () => { ignore = true; };
   }, [isOpen, clientId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
