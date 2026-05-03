@@ -12,18 +12,20 @@ interface LogContext {
   path?: string;
   method?: string;
   ip?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export async function log(
   level: LogLevel,
   message: string,
-  error?: any,
+  error?: unknown,
   context?: LogContext
 ) {
   const timestamp = new Date().toISOString();
   const contextString = context ? JSON.stringify(context) : null;
-  const errorString = error ? (error.stack || JSON.stringify(error)) : null;
+  const errorString = error instanceof Error 
+    ? error.stack 
+    : (error ? JSON.stringify(error) : null);
 
   // 1. Console Logging (Immediate visibility)
   const color = level === "ERROR" ? "\x1b[31m" : level === "WARN" ? "\x1b[33m" : "\x1b[32m";
@@ -51,5 +53,5 @@ export async function log(
 export const logger = {
   info: (msg: string, ctx?: LogContext) => log("INFO", msg, undefined, ctx),
   warn: (msg: string, ctx?: LogContext) => log("WARN", msg, undefined, ctx),
-  error: (msg: string, err: any, ctx?: LogContext) => log("ERROR", msg, err, ctx),
+  error: (msg: string, err: unknown, ctx?: LogContext) => log("ERROR", msg, err, ctx),
 };

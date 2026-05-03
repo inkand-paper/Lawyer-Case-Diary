@@ -13,7 +13,7 @@ export const comparePassword = async (password: string, hash: string) => {
   return await bcrypt.compare(password, hash);
 };
 
-export const signToken = async (payload: any) => {
+export const signToken = async (payload: Record<string, unknown>) => {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -25,7 +25,7 @@ export const verifyToken = async (token: string) => {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 };
