@@ -54,7 +54,8 @@ export async function PUT(req: Request, { params }: RouteParams) {
     const updatedHearing = await updateHearing(userId, id, validationResult.data);
     return successResponse(updatedHearing, "Hearing schedule updated successfully.");
   } catch (error: unknown) {
-    if (error.message?.includes("not found")) return apiErrors.NOT_FOUND(error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("not found")) return apiErrors.NOT_FOUND(message);
     return apiErrors.SERVER_ERROR("Failed to update hearing record.", error);
   }
 }
@@ -72,7 +73,8 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     const deletedHearing = await deleteHearing(userId, id);
     return successResponse(deletedHearing, "Hearing permanently removed from the procedural timeline.");
   } catch (error: unknown) {
-    if (error.message?.includes("not found")) return apiErrors.NOT_FOUND(error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("not found")) return apiErrors.NOT_FOUND(message);
     return apiErrors.SERVER_ERROR("Failed to remove hearing record.", error);
   }
 }

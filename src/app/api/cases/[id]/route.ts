@@ -51,8 +51,9 @@ export async function PUT(req: Request, { params }: RouteParams) {
     // 2. Ownership-Verified Update
     const updatedCase = await updateCase(user.id, user.chamberId, id, validationResult.data);
     return successResponse(updatedCase, "Case record updated successfully.");
-  } catch (error: any) {
-    if (error.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string };
+    if (err.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
     return apiErrors.SERVER_ERROR("Failed to update case record.", error);
   }
 }
@@ -69,8 +70,9 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
     const deletedCase = await deleteCase(user.id, user.chamberId, id);
     return successResponse(deletedCase, "Case permanently removed from the legal registry.");
-  } catch (error: any) {
-    if (error.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string };
+    if (err.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
     return apiErrors.SERVER_ERROR("Failed to remove case record.", error);
   }
 }

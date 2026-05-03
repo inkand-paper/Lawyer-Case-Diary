@@ -56,8 +56,9 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     const updatedClient = await updateClient(user.id, user.chamberId, id, validationResult.data);
     return successResponse(updatedClient, "Client profile updated successfully.");
-  } catch (error: any) {
-    if (error.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string };
+    if (err.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
     return apiErrors.SERVER_ERROR("Failed to update client record.", error);
   }
 }
@@ -74,8 +75,9 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
     const deletedClient = await deleteClient(user.id, id);
     return successResponse(deletedClient, "Client permanently removed from the professional directory.");
-  } catch (error: any) {
-    if (error.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string };
+    if (err.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
     return apiErrors.SERVER_ERROR("Failed to remove client record.", error);
   }
 }
