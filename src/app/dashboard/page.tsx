@@ -197,7 +197,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.recentActions.map((item, i: number) => (
+                    {data?.recentActions.map((item, i: number) => (
                       <tr
                         key={item.id}
                         style={{ borderBottom: "1px solid var(--border)" }}
