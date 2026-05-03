@@ -51,7 +51,32 @@ export default function TeamHub() {
   };
 
   useEffect(() => {
-    fetchData();
+    let ignore = false;
+    const init = async () => {
+      try {
+        const [meRes, chamberRes, inviteRes] = await Promise.all([
+          fetch("/api/me"),
+          fetch("/api/chambers"),
+          fetch("/api/chambers/invites")
+        ]);
+
+        const meJson = await meRes.json();
+        const chamberJson = await chamberRes.json();
+        const inviteJson = await inviteRes.json();
+
+        if (!ignore) {
+          if (meJson.success) setUser(meJson.data);
+          if (chamberJson.success) setChamber(chamberJson.data);
+          if (inviteJson.success) setInvites(inviteJson.data);
+        }
+      } catch {
+        if (!ignore) setError("Failed to synchronize team data.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   const handleCreateChamber = async (e: React.FormEvent<HTMLFormElement>) => {

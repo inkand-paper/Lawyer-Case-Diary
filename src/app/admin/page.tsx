@@ -8,23 +8,20 @@ import {
   Activity, 
   Database, 
   Clock,
-  Briefcase,
-  ChevronRight,
-  Loader2,
-  Trash2,
-  Settings2,
-  Scale,
   CheckCircle2,
   X,
-  AlertTriangle,
   Zap,
   Star,
   Crown,
-  ArrowLeft
+  ArrowLeft,
+  Loader2,
+  Settings2,
+  Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { User } from "@/lib/types";
 
 // Simplified plans, with Premium at the top per request
 const PLANS = [
@@ -34,10 +31,10 @@ const PLANS = [
 ];
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const router = useRouter();

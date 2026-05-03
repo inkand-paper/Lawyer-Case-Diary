@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 import db from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
+import { User } from "@/lib/types";
 
 // Mock out our database and auth services
 vi.mock("@/lib/db", () => ({
@@ -44,7 +45,7 @@ describe("POST /api/auth/register", () => {
     vi.mocked(db.user.findUnique).mockResolvedValueOnce({
       id: "1",
       email: "test@example.com",
-    } as any);
+    } as unknown as User);
 
     const req = new Request("http://localhost/api/auth/register", {
       method: "POST",
@@ -70,7 +71,7 @@ describe("POST /api/auth/register", () => {
       id: "123",
       name: "John",
       email: "test@example.com",
-    } as any);
+    } as unknown as User);
     vi.mocked(signToken).mockResolvedValueOnce("mock_jwt_token");
 
     const req = new Request("http://localhost/api/auth/register", {

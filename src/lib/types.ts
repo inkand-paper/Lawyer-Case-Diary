@@ -43,6 +43,7 @@ export interface Case {
   client?: Client;
   createdAt: string | Date;
   updatedAt: string | Date;
+  hearings?: Hearing[];
 }
 
 export interface Hearing {

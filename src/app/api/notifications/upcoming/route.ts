@@ -4,6 +4,9 @@
  * Logic: Filters sessions starting within the next hour that haven't passed yet.
  */
 
+// Hardened judicial sync.
+
+
 export const dynamic = 'force-dynamic';
 import { getAuthUser } from "@/lib/auth-server";
 import db from "@/lib/db";

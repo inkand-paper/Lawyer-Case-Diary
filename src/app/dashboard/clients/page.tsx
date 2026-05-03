@@ -54,8 +54,24 @@ export default function ClientsPage() {
     }
   };
 
-  useEffect(() => { 
-    fetchClients(); 
+  useEffect(() => {
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/clients");
+        const json = await res.json();
+        if (!ignore) {
+          if (json.success) setClients(json.data);
+          else setError(json.error?.message || "Failed to load records.");
+        }
+      } catch {
+        if (!ignore) setError("Network protocol failure.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   const filteredClients = useMemo(() => {

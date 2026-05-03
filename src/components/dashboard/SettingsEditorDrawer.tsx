@@ -18,7 +18,6 @@ import {
   Loader2,
   User,
   Lock,
-  Bell,
   CreditCard,
   AlertCircle,
   CheckCircle2,
@@ -31,12 +30,19 @@ import {
   LogOut,
   Zap,
 } from "lucide-react";
+import { User as UserType } from "@/lib/types";
+
+interface ApiKey {
+  id: string;
+  name: string;
+  lastUsedAt?: string | Date | null;
+}
 
 interface SettingsEditorDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   section: string;
-  currentUser?: any;
+  currentUser?: UserType;
 }
 
 const inputStyle = {
@@ -56,17 +62,24 @@ export function SettingsEditorDrawer({
   const [success, setSuccess] = useState("");
   
   // API Key State
-  const [keys, setKeys] = useState<any[]>([]);
+  const [keys, setKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState("");
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
 
   useEffect(() => {
-    setError("");
-    setSuccess("");
-    setGeneratedKey(null);
+    let ignore = false;
+
     if (isOpen && section === "Security & Authentication") {
+      const fetchKeys = async () => {
+        try {
+          const res = await fetch("/api/settings/keys");
+          const json = await res.json();
+          if (!ignore && json.success) setKeys(json.data);
+        } catch {}
+      };
       fetchKeys();
     }
+    return () => { ignore = true; };
   }, [section, isOpen]);
 
   const fetchKeys = async () => {
@@ -84,7 +97,7 @@ export function SettingsEditorDrawer({
     setSuccess("");
 
     const formData = new FormData(e.currentTarget);
-    const payload: any = {
+    const payload = {
       name: formData.get("name"),
       email: formData.get("email"),
     };
@@ -207,6 +220,13 @@ export function SettingsEditorDrawer({
                 </div>
               )}
 
+              {error && (
+                <div className="p-4 mb-6 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest" style={{ background: "rgba(239,68,68,0.05)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
+                </div>
+              )}
+
               {isProfile && (
                 <form onSubmit={handleProfileSubmit} className="space-y-8">
                   <div className="space-y-2.5">
@@ -269,7 +289,7 @@ export function SettingsEditorDrawer({
                     </div>
                     {generatedKey && (
                       <div className="p-4 rounded-xl space-y-2" style={{ background: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.2)" }}>
-                        <p className="text-[8px] font-black uppercase tracking-widest text-green-600">Key generated! Copy now, it won't be shown again.</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-green-600">Key generated! Copy now, it won&apos;t be shown again.</p>
                         <div className="flex items-center justify-between bg-white/50 p-2 rounded-lg border">
                           <code className="text-[10px] font-mono break-all">{generatedKey}</code>
                           <button onClick={() => navigator.clipboard.writeText(generatedKey)} className="p-1 hover:bg-black/5 rounded"><Copy className="w-3 h-3" /></button>

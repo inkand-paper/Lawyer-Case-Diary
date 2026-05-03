@@ -24,6 +24,7 @@ import {
   FileText,
   Briefcase,
 } from "lucide-react";
+import { Hearing, Case } from "@/lib/types";
 
 interface HearingEditorDrawerProps {
   isOpen: boolean;
@@ -47,48 +48,42 @@ export function HearingEditorDrawer({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [cases, setCases] = useState<any[]>([]);
-  const [hearingData, setHearingData] = useState<any>(null);
-
-  const fetchCases = async () => {
-    try {
-      const res = await fetch("/api/cases");
-      const json = await res.json();
-      if (json.success) setCases(json.data);
-    } catch {}
-  };
-
-  const fetchHearing = async (id: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/hearings/${id}`);
-      const json = await res.json();
-      if (json.success) {
-        setHearingData(json.data);
-      } else {
-        setError(json.error?.message || "Failed to load hearing record.");
-      }
-    } catch {
-      setError("Network error — unable to reach server.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [cases, setCases] = useState<Case[]>([]);
+  const [hearingData, setHearingData] = useState<Partial<Hearing> | null>(null);
 
   useEffect(() => {
+    let ignore = false;
     if (isOpen) {
-      fetchCases();
-      if (hearingId) {
-        fetchHearing(hearingId);
-      } else {
-        setHearingData({ caseId: "", hearingDate: "", notes: "" });
-        setError("");
-      }
-    } else {
-      setHearingData(null);
-      setError("");
+      const init = async () => {
+        try {
+          // fetch cases
+          const cRes = await fetch("/api/cases");
+          const cJson = await cRes.json();
+          if (!ignore && cJson.success) setCases(cJson.data);
+
+          if (hearingId) {
+            setLoading(true);
+            const res = await fetch(`/api/hearings/${hearingId}`);
+            const json = await res.json();
+            if (!ignore) {
+              if (json.success) setHearingData(json.data);
+              else setError(json.error?.message || "Failed to load hearing.");
+            }
+          } else {
+            if (!ignore) {
+              setHearingData({ caseId: "", hearingDate: "", notes: "" });
+              setError("");
+            }
+          }
+        } catch {
+          if (!ignore) setError("Network error.");
+        } finally {
+          if (!ignore) setLoading(false);
+        }
+      };
+      init();
     }
+    return () => { ignore = true; };
   }, [isOpen, hearingId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

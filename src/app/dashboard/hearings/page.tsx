@@ -56,7 +56,23 @@ export default function HearingsPage() {
   };
 
   useEffect(() => {
-    fetchHearings();
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/hearings");
+        const json = await res.json();
+        if (!ignore) {
+          if (json.success) setHearings(json.data);
+          else setError(json.error?.message || "Failed to load hearings.");
+        }
+      } catch {
+        if (!ignore) setError("Network protocol failure.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    init();
+    return () => { ignore = true; };
   }, []);
 
   const filteredHearings = useMemo(() => {
@@ -132,7 +148,7 @@ export default function HearingsPage() {
         <div className="flex items-center gap-2">
           <select
             value={timeFilter}
-            onChange={(e) => setTimeFilter(e.target.value as any)}
+            onChange={(e) => setTimeFilter(e.target.value as "ALL" | "UPCOMING" | "PAST")}
             className="h-full px-5 rounded-2xl font-bold text-xs uppercase tracking-widest outline-none appearance-none cursor-pointer"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)" }}
           >
@@ -237,7 +253,7 @@ export default function HearingsPage() {
 
               {h.notes && (
                 <div className="mt-6 p-4 sm:p-5 rounded-2xl text-[10px] sm:text-[11px] font-medium italic border-l-2 leading-relaxed" style={{ background: "var(--surface-2)", borderColor: "var(--foreground)", color: "var(--muted)" }}>
-                  "{h.notes}"
+                  &quot;{h.notes}&quot;
                 </div>
               )}
             </motion.div>
