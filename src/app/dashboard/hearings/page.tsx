@@ -76,20 +76,20 @@ export default function HearingsPage() {
     });
   }, [hearings, searchQuery, timeFilter]);
 
-  const formatDate = (iso: string) =>
+  const formatDate = (iso: string | Date) =>
     new Date(iso).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
 
-  const formatTime = (iso: string) =>
+  const formatTime = (iso: string | Date) =>
     new Date(iso).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-  const isUpcoming = (iso: string) => new Date(iso) > new Date();
+  const isUpcoming = (iso: string | Date) => new Date(iso) > new Date();
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24 lg:pb-0">

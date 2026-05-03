@@ -59,6 +59,8 @@ export interface Chamber {
   id: string;
   name: string;
   ownerId: string;
+  members?: User[];
+  invites?: Invitation[];
 }
 
 export interface Invitation {
@@ -67,4 +69,5 @@ export interface Invitation {
   role: UserRole;
   status: "PENDING" | "ACCEPTED" | "REJECTED";
   chamberId: string;
+  chamber?: Chamber;
 }

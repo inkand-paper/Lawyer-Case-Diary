@@ -26,9 +26,22 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import { Case, User } from "@/lib/types";
+
+interface DashboardData {
+  stats: {
+    activeCases: number;
+    verifiedClients: number;
+    upcomingHearings: number;
+    uptime: string;
+    emailVerified: boolean;
+  };
+  recentActions: Case[];
+  user: User;
+}
 
 export default function Dashboard() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,7 +197,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.recentActions.map((item: any, i: number) => (
+                    {data.recentActions.map((item, i: number) => (
                       <tr
                         key={item.id}
                         style={{ borderBottom: "1px solid var(--border)" }}
