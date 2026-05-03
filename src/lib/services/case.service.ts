@@ -100,6 +100,6 @@ export const deleteCase = async (userId: string, chamberId: string | null, caseI
 /**
  * Dedicated status update helper for high-frequency state transitions.
  */
-export const updateCaseStatus = async (userId: string, caseId: string, status: string) => {
-  return await updateCase(userId, caseId, { status });
+export const updateCaseStatus = async (userId: string, chamberId: string | null, caseId: string, status: string) => {
+  return await updateCase(userId, chamberId, caseId, { status });
 };
