@@ -20,6 +20,7 @@ import {
   Filter,
   Loader2,
   ChevronRight,
+  MoreHorizontal,
   AlertCircle,
 } from "lucide-react";
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
