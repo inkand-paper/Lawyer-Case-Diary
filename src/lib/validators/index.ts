@@ -25,11 +25,13 @@ const dateTransform = z
   .string()
   .transform((val, ctx) => {
     if (!val || val.trim() === "") return undefined;
+    
+    // Strict ISO check: require time component for professional precision
     const date = new Date(val);
-    if (isNaN(date.getTime())) {
+    if (isNaN(date.getTime()) || !val.includes("T")) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Invalid date format. Please select a valid date.",
+        message: "Invalid format. Professional records require a full date and time (ISO protocol).",
       });
       return z.NEVER;
     }
