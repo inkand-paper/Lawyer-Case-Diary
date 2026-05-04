@@ -60,8 +60,8 @@ export function QuickCaseForm({ onCaseCreated }: { onCaseCreated: () => void }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.get("clientName"),
-          phone: formData.get("clientPhone") || undefined,
+          name: formData.get("clientName") as string,
+          phone: (formData.get("clientPhone") as string) || undefined,
         }),
       });
       const result = await res.json();
@@ -90,9 +90,9 @@ export function QuickCaseForm({ onCaseCreated }: { onCaseCreated: () => void }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: formData.get("title"),
-          caseNumber: formData.get("caseNumber"),
-          courtName: formData.get("courtName"),
+          title: formData.get("title") as string,
+          caseNumber: formData.get("caseNumber") as string,
+          courtName: formData.get("courtName") as string,
           clientId,
         }),
       });

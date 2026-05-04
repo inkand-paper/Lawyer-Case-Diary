@@ -131,14 +131,14 @@ export function CaseEditorDrawer({
     const endpoint = caseId ? `/api/cases/${caseId}` : `/api/cases`;
 
     const payload: Record<string, string | number | boolean | undefined | null> = {
-      title: formData.get("title"),
-      caseNumber: formData.get("caseNumber"),
-      courtName: formData.get("courtName"),
-      judgeName: formData.get("judgeName") || undefined,
-      status: formData.get("status"),
+      title: formData.get("title") as string,
+      caseNumber: formData.get("caseNumber") as string,
+      courtName: formData.get("courtName") as string,
+      judgeName: (formData.get("judgeName") as string) || undefined,
+      status: formData.get("status") as string,
     };
 
-    const clientId = formData.get("clientId");
+    const clientId = formData.get("clientId") as string;
     if (clientId) payload.clientId = clientId;
 
     try {
