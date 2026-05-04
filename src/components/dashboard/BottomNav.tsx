@@ -24,6 +24,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { fetchJson } from "@/lib/fetch-json";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -31,15 +32,13 @@ export function BottomNav() {
   const [plan, setPlan] = useState<string>("ESSENTIAL");
 
   useEffect(() => {
-    fetch("/api/me")
-      .then(res => res.json())
+    fetchJson<{ success: boolean; data: { role: string; plan: string } }>("/api/me")
       .then(res => {
-        if (res.success) {
+        if (res?.success) {
           setRole(res.data.role);
           setPlan(res.data.plan || "ESSENTIAL");
         }
-      })
-      .catch(() => {});
+      });
   }, []);
 
   const isAdmin = role === "ADMIN";

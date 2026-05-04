@@ -25,6 +25,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { Hearing, Case } from "@/lib/types";
+import { fetchJson } from "@/lib/fetch-json";
 
 interface HearingEditorDrawerProps {
   isOpen: boolean;
@@ -57,17 +58,15 @@ export function HearingEditorDrawer({
       const init = async () => {
         try {
           // fetch cases
-          const cRes = await fetch("/api/cases");
-          const cJson = await cRes.json();
-          if (!ignore && cJson.success) setCases(cJson.data);
+          const cJson = await fetchJson<{ success: boolean; data: Case[] }>("/api/cases");
+          if (!ignore && cJson?.success) setCases(cJson.data);
 
           if (hearingId) {
             setLoading(true);
-            const res = await fetch(`/api/hearings/${hearingId}`);
-            const json = await res.json();
+            const json = await fetchJson<{ success: boolean; data: Hearing; error?: { message: string } }>(`/api/hearings/${hearingId}`);
             if (!ignore) {
-              if (json.success) setHearingData(json.data);
-              else setError(json.error?.message || "Failed to load hearing.");
+              if (json?.success) setHearingData(json.data);
+              else setError(json?.error?.message || "Failed to load hearing.");
             }
           } else {
             if (!ignore) {

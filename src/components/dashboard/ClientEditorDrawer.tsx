@@ -25,6 +25,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import { Client } from "@/lib/types";
+import { fetchJson } from "@/lib/fetch-json";
 
 interface ClientEditorDrawerProps {
   isOpen: boolean;
@@ -57,11 +58,10 @@ export function ClientEditorDrawer({
         try {
           if (clientId) {
             setLoading(true);
-            const res = await fetch(`/api/clients/${clientId}`);
-            const json = await res.json();
+            const json = await fetchJson<{ success: boolean; data: Partial<Client>; error?: { message: string } }>(`/api/clients/${clientId}`);
             if (!ignore) {
-              if (json.success) setClientData(json.data);
-              else setError(json.error?.message || "Failed to load client.");
+              if (json?.success) setClientData(json.data);
+              else setError(json?.error?.message || "Failed to load client.");
             }
           } else {
             if (!ignore) {

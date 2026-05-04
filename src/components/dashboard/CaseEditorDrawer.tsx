@@ -31,6 +31,7 @@ import {
   Crown,
 } from "lucide-react";
 import { Case, Client, Hearing } from "@/lib/types";
+import { fetchJson } from "@/lib/fetch-json";
 
 interface CaseEditorDrawerProps {
   isOpen: boolean;
@@ -67,12 +68,11 @@ export function CaseEditorDrawer({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/cases/${id}`);
-      const json = await res.json();
-      if (json.success) {
+      const json = await fetchJson<{ success: boolean; data: Partial<Case>; error?: { message: string } }>(`/api/cases/${id}`);
+      if (json?.success) {
         setCaseData(json.data);
       } else {
-        setError(json.error?.message || "Failed to load case record.");
+        setError(json?.error?.message || "Failed to load case record.");
       }
     } catch {
       setError("Network error — unable to load case.");
@@ -87,17 +87,15 @@ export function CaseEditorDrawer({
       const init = async () => {
         try {
           // fetch clients
-          const cRes = await fetch("/api/clients");
-          const cJson = await cRes.json();
-          if (!ignore && cJson.success) setClients(cJson.data);
+          const cJson = await fetchJson<{ success: boolean; data: Client[] }>("/api/clients");
+          if (!ignore && cJson?.success) setClients(cJson.data);
 
           if (caseId) {
             setLoading(true);
-            const res = await fetch(`/api/cases/${caseId}`);
-            const json = await res.json();
+            const json = await fetchJson<{ success: boolean; data: Partial<Case>; error?: { message: string } }>(`/api/cases/${caseId}`);
             if (!ignore) {
-              if (json.success) setCaseData(json.data);
-              else setError(json.error?.message || "Failed to load case.");
+              if (json?.success) setCaseData(json.data);
+              else setError(json?.error?.message || "Failed to load case.");
             }
           } else {
             if (!ignore) {
