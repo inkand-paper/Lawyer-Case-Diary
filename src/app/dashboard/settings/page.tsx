@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { SettingsEditorDrawer } from "@/components/dashboard/SettingsEditorDrawer";
 import { User as UserType } from "@/lib/types";
+import { fetchJson } from "@/lib/fetch-json";
 
 export default function SettingsPage() {
   const [userData, setUserData] = useState<UserType | null>(null);
@@ -33,9 +34,8 @@ export default function SettingsPage() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("/api/me");
-      const json = await res.json();
-      if (json.success) setUserData(json.data);
+      const json = await fetchJson<{ success: boolean; data: UserType }>("/api/me");
+      if (json?.success) setUserData(json.data);
     } catch (e) {
       console.error("Profile sync failure", e);
     } finally {
@@ -47,9 +47,8 @@ export default function SettingsPage() {
     let ignore = false;
     const init = async () => {
       try {
-        const res = await fetch("/api/me");
-        const json = await res.json();
-        if (!ignore && json.success) setUserData(json.data);
+        const json = await fetchJson<{ success: boolean; data: UserType }>("/api/me");
+        if (!ignore && json?.success) setUserData(json.data);
       } catch (e) {
         console.error("Profile sync failure", e);
       } finally {

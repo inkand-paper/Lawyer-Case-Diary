@@ -26,6 +26,7 @@ import {
   LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetchJson } from "@/lib/fetch-json";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", desc: "View status and stats" },
@@ -42,15 +43,13 @@ export function Sidebar() {
   const [plan, setPlan] = useState<string>("ESSENTIAL");
 
   useEffect(() => {
-    fetch("/api/me")
-      .then(res => res.json())
+    fetchJson<{ success: boolean; data: { role: string; plan: string } }>("/api/me")
       .then(res => {
-        if (res.success) {
+        if (res?.success) {
           setRole(res.data.role);
           setPlan(res.data.plan || "ESSENTIAL");
         }
-      })
-      .catch(() => {});
+      });
   }, []);
 
   const isAdmin = role === "ADMIN";

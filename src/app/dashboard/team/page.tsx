@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Chamber, Invitation } from "@/lib/types";
+import { fetchJson } from "@/lib/fetch-json";
 
 export default function TeamHub() {
   const [loading, setLoading] = useState(true);
@@ -30,19 +31,15 @@ export default function TeamHub() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [meRes, chamberRes, inviteRes] = await Promise.all([
-        fetch("/api/me"),
-        fetch("/api/chambers"),
-        fetch("/api/chambers/invites")
+      const [meJson, chamberJson, inviteJson] = await Promise.all([
+        fetchJson<{ success: boolean; data: User }>("/api/me"),
+        fetchJson<{ success: boolean; data: Chamber }>("/api/chambers"),
+        fetchJson<{ success: boolean; data: Invitation[] }>("/api/chambers/invites")
       ]);
 
-      const meJson = await meRes.json();
-      const chamberJson = await chamberRes.json();
-      const inviteJson = await inviteRes.json();
-
-      if (meJson.success) setUser(meJson.data);
-      if (chamberJson.success) setChamber(chamberJson.data);
-      if (inviteJson.success) setInvites(inviteJson.data);
+      if (meJson?.success) setUser(meJson.data);
+      if (chamberJson?.success) setChamber(chamberJson.data);
+      if (inviteJson?.success) setInvites(inviteJson.data);
     } catch (err) {
       setError("Failed to synchronize team data.");
     } finally {
@@ -54,20 +51,16 @@ export default function TeamHub() {
     let ignore = false;
     const init = async () => {
       try {
-        const [meRes, chamberRes, inviteRes] = await Promise.all([
-          fetch("/api/me"),
-          fetch("/api/chambers"),
-          fetch("/api/chambers/invites")
+        const [meJson, chamberJson, inviteJson] = await Promise.all([
+          fetchJson<{ success: boolean; data: User }>("/api/me"),
+          fetchJson<{ success: boolean; data: Chamber }>("/api/chambers"),
+          fetchJson<{ success: boolean; data: Invitation[] }>("/api/chambers/invites")
         ]);
 
-        const meJson = await meRes.json();
-        const chamberJson = await chamberRes.json();
-        const inviteJson = await inviteRes.json();
-
         if (!ignore) {
-          if (meJson.success) setUser(meJson.data);
-          if (chamberJson.success) setChamber(chamberJson.data);
-          if (inviteJson.success) setInvites(inviteJson.data);
+          if (meJson?.success) setUser(meJson.data);
+          if (chamberJson?.success) setChamber(chamberJson.data);
+          if (inviteJson?.success) setInvites(inviteJson.data);
         }
       } catch {
         if (!ignore) setError("Failed to synchronize team data.");
