@@ -103,9 +103,9 @@ export function HearingEditorDrawer({
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          caseId: formData.get("caseId"),
+          caseId: formData.get("caseId") as string,
           hearingDate: isoDate,
-          notes: formData.get("notes") || undefined,
+          notes: (formData.get("notes") as string) || undefined,
         }),
       });
       const json = await res.json();

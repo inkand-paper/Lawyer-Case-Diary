@@ -98,8 +98,8 @@ export function SettingsEditorDrawer({
 
     const formData = new FormData(e.currentTarget);
     const payload = {
-      name: formData.get("name"),
-      email: formData.get("email"),
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
     };
 
     try {

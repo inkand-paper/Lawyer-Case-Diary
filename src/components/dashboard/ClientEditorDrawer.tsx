@@ -90,10 +90,10 @@ export function ClientEditorDrawer({
     const endpoint = clientId ? `/api/clients/${clientId}` : `/api/clients`;
 
     const payload = {
-      name: formData.get("name"),
-      email: formData.get("email") || undefined,
-      phone: formData.get("phone") || undefined,
-      address: formData.get("address") || undefined,
+      name: formData.get("name") as string,
+      email: (formData.get("email") as string) || undefined,
+      phone: (formData.get("phone") as string) || undefined,
+      address: (formData.get("address") as string) || undefined,
     };
 
     try {
