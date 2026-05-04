@@ -42,7 +42,7 @@ interface SettingsEditorDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   section: string;
-  currentUser?: UserType;
+  currentUser?: UserType | null;
 }
 
 const inputStyle = {
