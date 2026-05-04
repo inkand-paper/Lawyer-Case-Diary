@@ -79,10 +79,8 @@ export function Sidebar() {
         {menuItems.filter(item => {
           // 1. If no plan is required, everyone sees it
           if (!item.plan) return true;
-          // 2. Admins see everything
-          if (isAdmin) return true;
-          // 3. Otherwise, must match the plan exactly
-          return item.plan === plan;
+          // 2. Otherwise, must match the plan
+          return item.plan === plan || plan === "ULTIMATE"; // ULTIMATE gets access to everything
         }).map((item) => {
           const isActive = pathname === item.href;
           return (

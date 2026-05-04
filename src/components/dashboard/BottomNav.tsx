@@ -47,7 +47,7 @@ export function BottomNav() {
     { icon: LayoutDashboard, label: "Feed", href: "/dashboard" },
     { icon: Briefcase, label: "Cases", href: "/dashboard/cases" },
     { icon: Users, label: "Clients", href: "/dashboard/clients" },
-    ...(plan === "ULTIMATE" || isAdmin ? [{ icon: UserPlus, label: "Team", href: "/dashboard/team" }] : []),
+    ...(plan === "ULTIMATE" ? [{ icon: UserPlus, label: "Team", href: "/dashboard/team" }] : []),
     { icon: Calendar, label: "Dockets", href: "/dashboard/hearings" },
     { icon: Settings, label: "Config", href: "/dashboard/settings" },
     ...(isAdmin ? [{ icon: ShieldAlert, label: "Admin", href: "/admin" }] : []),

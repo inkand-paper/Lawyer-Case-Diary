@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   const router = useRouter();
 
@@ -60,6 +61,7 @@ export default function AdminDashboard() {
           router.push("/dashboard");
           return;
         }
+        setCurrentUserId(res.data.id);
         fetchUsers();
       })
       .catch(() => setLoading(false));
@@ -370,7 +372,8 @@ export default function AdminDashboard() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => handleUpdateRole(selectedUser.id, "LAWYER")}
-                        className="p-4 rounded-2xl border text-center transition-all font-black uppercase tracking-widest text-sm"
+                        disabled={selectedUser.id === currentUserId}
+                        className={`p-4 rounded-2xl border text-center transition-all font-black uppercase tracking-widest text-sm ${selectedUser.id === currentUserId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         style={selectedUser.role === "LAWYER" || !selectedUser.role
                           ? { background: "var(--foreground)", borderColor: "var(--foreground)", color: "var(--background)" }
                           : { background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }

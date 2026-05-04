@@ -25,12 +25,18 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!await verifyAdmin()) return apiErrors.UNAUTHORIZED("Admin clearance required.");
+  const adminId = await verifyAdmin();
+  if (!adminId) return apiErrors.UNAUTHORIZED("Admin clearance required.");
 
   try {
     const { id } = await params;
     const body = await req.json();
     const { plan, role } = body;
+
+    // Prevent self-demotion
+    if (role && role !== "ADMIN" && id === adminId) {
+      return apiErrors.BAD_REQUEST("Self-demotion is not permitted to prevent accidental lockouts.");
+    }
 
     const updatedUser = await db.user.update({
       where: { id },
