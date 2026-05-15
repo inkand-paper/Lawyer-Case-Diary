@@ -24,6 +24,7 @@ model User {
   cases         Case[]
   reminders     Reminder[]
   apiKeys       ApiKey[]
+  refreshTokens RefreshToken[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -158,4 +159,35 @@ model ApiKey {
   name       String
   lastUsedAt DateTime?
   createdAt  DateTime  @default(now())
+}
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  userId         String
+  idempotencyKey String
+  responseBody   String   // JSON string of the saved response
+  statusCode     Int
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@unique([userId, idempotencyKey])
+}
+
+model RateLimit {
+  id        String   @id @default(uuid())
+  key       String   @unique // Identifier (IP or User ID)
+  count     Int      @default(1)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

@@ -1,5 +1,6 @@
 import db from "@/lib/db";
 import { revalidateTags } from "@/lib/optimizer";
+import { logger } from "./logger.service";
 
 /**
  * Professional Case Management Service
@@ -30,6 +31,7 @@ export const createCase = async (userId: string, chamberId: string | null, data:
     },
   });
 
+  await logger.info("Case Record Created", { userId, caseId: newCase.id, title: data.title });
   await revalidateTags(["cases", "dashboard", `client:${data.clientId}`]);
   return newCase;
 };
@@ -77,6 +79,7 @@ export const updateCase = async (userId: string, chamberId: string | null, caseI
     data,
   });
 
+  await logger.info("Case Record Updated", { userId, caseId, updates: Object.keys(data) });
   await revalidateTags(["cases", `case:${caseId}`, "dashboard"]);
   return updatedCase;
 };
@@ -93,6 +96,7 @@ export const deleteCase = async (userId: string, chamberId: string | null, caseI
     data: { status: "CLOSED" }
   });
 
+  await logger.warn("Case Record Deactivated (Soft Delete)", { userId, caseId });
   await revalidateTags(["cases", "dashboard", `case:${caseId}`]);
   return closedCase;
 };

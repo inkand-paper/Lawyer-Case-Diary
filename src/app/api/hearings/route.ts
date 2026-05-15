@@ -40,17 +40,33 @@ export async function POST(req: Request) {
   if (!userId) return apiErrors.UNAUTHORIZED("Authorization required for hearing enrollment.");
 
   try {
+    // 1. Idempotency Check (Production Safeguard)
+    const idempotencyKey = req.headers.get("Idempotency-Key");
+    if (idempotencyKey) {
+      const { getIdempotentResponse, saveIdempotentResponse } = await import("@/lib/idempotency");
+      const cachedResponse = await getIdempotentResponse(userId, idempotencyKey);
+      if (cachedResponse) return cachedResponse;
+    }
+
     const body = await req.json();
     
-    // 1. Structural Validation (Zod)
+    // 2. Structural Validation (Zod)
     const validationResult = hearingSchema.safeParse(body);
     if (!validationResult.success) {
       return apiErrors.BAD_REQUEST(validationResult.error.issues[0].message);
     }
 
-    // 2. Persistent Enrollment
+    // 3. Persistent Enrollment
     const hearing = await createHearing(userId, validationResult.data);
-    return successResponse(hearing, "Hearing successfully enrolled in the procedural timeline.", 201);
+    const response = successResponse(hearing, "Hearing successfully enrolled in the procedural timeline.", 201);
+
+    // 4. Save for Idempotency if key provided
+    if (idempotencyKey) {
+      const { saveIdempotentResponse } = await import("@/lib/idempotency");
+      await saveIdempotentResponse(userId, idempotencyKey, response as any);
+    }
+
+    return response;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     return apiErrors.SERVER_ERROR(message || "A critical failure occurred during hearing enrollment.", error);
