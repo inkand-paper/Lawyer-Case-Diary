@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     // 1. Idempotency Check (Production Safeguard)
     const idempotencyKey = req.headers.get("Idempotency-Key");
     if (idempotencyKey) {
-      const { getIdempotentResponse, saveIdempotentResponse } = await import("@/lib/idempotency");
+      const { getIdempotentResponse } = await import("@/lib/idempotency");
       const cachedResponse = await getIdempotentResponse(userId, idempotencyKey);
       if (cachedResponse) return cachedResponse;
     }
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     // 4. Save for Idempotency if key provided
     if (idempotencyKey) {
       const { saveIdempotentResponse } = await import("@/lib/idempotency");
-      await saveIdempotentResponse(userId, idempotencyKey, response as any);
+      await saveIdempotentResponse(userId, idempotencyKey, response as import("next/server").NextResponse);
     }
 
     return response;

@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
 import { registerSchema } from "@/lib/validators";

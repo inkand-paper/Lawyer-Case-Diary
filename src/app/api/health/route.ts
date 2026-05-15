@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * Used by Load Balancers and Uptime Monitors to verify system integrity.
  */
 export async function GET() {
-  const status: Record<string, any> = {
+  const status: Record<string, string | number | object> = {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     services: {
