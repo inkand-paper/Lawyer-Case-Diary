@@ -19,6 +19,10 @@ const JWT_SECRET = new TextEncoder().encode(
 // In-memory store for rate limiting (Edge compatible)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
+export async function middleware(req: NextRequest) {
+  return proxy(req);
+}
+
 export async function proxy(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
   console.log(`[MIDDLEWARE] ${req.method} ${req.nextUrl.pathname} | IP: ${ip}`);
