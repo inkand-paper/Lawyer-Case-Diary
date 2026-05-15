@@ -5,9 +5,9 @@
 
 export const dynamic = 'force-dynamic';
 import { getAuthUser } from "@/lib/auth-server";
-import db from "@/lib/db";
 import { successResponse, apiErrors } from "@/lib/api-response";
-import crypto from "crypto";
+import db from "@/lib/db";
+import { generateApiKey, revokeApiKey } from "@/lib/services/auth.service";
 
 export async function GET() {
   const userId = await getAuthUser();
@@ -33,20 +33,8 @@ export async function POST(req: Request) {
     const { name } = await req.json();
     if (!name) return apiErrors.BAD_REQUEST("Key label required.");
 
-    // Generate a secure random key
-    const rawKey = `lcd_${crypto.randomBytes(24).toString("hex")}`;
-    const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
-
-    const newKey = await db.apiKey.create({
-      data: {
-        userId,
-        name,
-        keyHash
-      }
-    });
-
-    // We only return the rawKey ONCE
-    return successResponse({ ...newKey, rawKey }, "New registry key generated.");
+    const keyData = await generateApiKey(userId, name);
+    return successResponse(keyData, "New registry key generated.");
   } catch (error) {
     return apiErrors.SERVER_ERROR("Key generation failed.");
   }
@@ -58,7 +46,7 @@ export async function DELETE(req: Request) {
 
   try {
     const { id } = await req.json();
-    await db.apiKey.delete({ where: { id, userId } });
+    await revokeApiKey(userId, id);
     return successResponse(null, "Key revoked.");
   } catch (error) {
     return apiErrors.SERVER_ERROR("Key revocation failed.");

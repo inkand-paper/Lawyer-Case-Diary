@@ -95,6 +95,9 @@ model Case {
   reminders   Reminder[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([chamberId, status])
 }
 
 model Hearing {
@@ -149,6 +152,8 @@ model Log {
   context   String?  // JSON string of request context
   error     String?  // error stack or details
   createdAt DateTime @default(now())
+
+  @@index([level, createdAt(sort: Desc)])
 }
 
 model ApiKey {

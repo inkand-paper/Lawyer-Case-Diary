@@ -17,7 +17,15 @@ export const signToken = async (payload: Record<string, unknown>) => {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime("1h") // Short-lived Access Token (1 hour)
+    .sign(JWT_SECRET);
+};
+
+export const signRefreshToken = async (payload: Record<string, unknown>) => {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d") // Long-lived Refresh Token (7 days)
     .sign(JWT_SECRET);
 };
 
@@ -25,7 +33,7 @@ export const verifyToken = async (token: string) => {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload;
-  } catch {
+  } catch (error) {
     return null;
   }
 };

@@ -66,8 +66,17 @@ async function logEvent({ level, message, context, error }: LogPayload) {
       }
     });
 
-    // In development, also output to console
-    if (process.env.NODE_ENV === "development") {
+    // 4. Console output (Structured for Production)
+    if (process.env.NODE_ENV === "production") {
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level,
+        message,
+        context: sanitizeContext(context),
+        error: errorString
+      }));
+    } else {
+      // Human-readable in development
       const consoleMsg = `[${level}] ${message}`;
       if (level === "ERROR") console.error(consoleMsg, error);
       else if (level === "WARN") console.warn(consoleMsg);

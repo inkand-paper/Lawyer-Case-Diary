@@ -9,30 +9,18 @@ const JWT_SECRET = new TextEncoder().encode(
 
 /**
  * Global Security & Auth Proxy (Next.js 16+)
- * ─────────────────────────────────────────────────────────────
- * 1. CORS Enforcement
- * 2. Advanced Security Headers (CSP, HSTS, XSS Protection)
- * 3. Route Protection (/dashboard, /admin, /api)
- * 4. Executive RBAC (Role-Based Access Control)
- * ─────────────────────────────────────────────────────────────
  */
-// In-memory store for rate limiting (Edge compatible)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 export async function middleware(req: NextRequest) {
-  return proxy(req);
-}
-
-export async function proxy(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
-  console.log(`[MIDDLEWARE] ${req.method} ${req.nextUrl.pathname} | IP: ${ip}`);
   const { pathname } = req.nextUrl;
   const origin = req.headers.get("origin");
 
-  // 0. Rate Limiting (Production Shield)
+  // 1. Rate Limiting
   if (!pathname.startsWith("/_next") && !pathname.includes(".")) {
     const now = Date.now();
-    const windowMs = 60000; // 1 minute
+    const windowMs = 60000;
     const limit = 100;
 
     let record = rateLimitStore.get(ip);
@@ -44,37 +32,39 @@ export async function proxy(req: NextRequest) {
     rateLimitStore.set(ip, record);
 
     if (record.count > limit) {
+      const resetSeconds = Math.ceil((record.resetAt - now) / 1000);
       return new NextResponse(
-        JSON.stringify({ 
-          error: "Too Many Requests", 
-          message: "Legal Core is currently experiencing high volume. Please wait a moment.",
-          retryAfter: new Date(record.resetAt).toISOString()
-        }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Too Many Requests", message: "High volume. Please wait." }),
+        { 
+          status: 429, 
+          headers: { 
+            "Content-Type": "application/json",
+            "Retry-After": resetSeconds.toString(),
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": resetSeconds.toString()
+          } 
+        }
       );
     }
   }
 
-  // 1. Strict CORS Enforcement (Production Standard)
+  const res = NextResponse.next();
+
+  // 2. CORS & Security Headers
   const isAllowed = isOriginAllowed(origin);
   if (origin && !isAllowed) {
     return new NextResponse(
-      JSON.stringify({ error: "Security Violation", message: "Cross-Origin request blocked." }),
+      JSON.stringify({ error: "Security Violation", message: "CORS blocked." }),
       { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const res = NextResponse.next();
-  const corsHeaders = getCorsHeaders(origin);
-
-  // 2. Judicial Security Headers (Hardened)
   const securityHeaders = {
-    ...corsHeaders,
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.pooler.supabase.com:5432 https://*.pooler.supabase.com:6543;",
+    ...getCorsHeaders(origin),
     "X-Frame-Options": "SAMEORIGIN",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload"
   };
 
@@ -82,15 +72,12 @@ export async function proxy(req: NextRequest) {
     res.headers.set(key, value);
   });
 
-  // 3. Advanced Route Protection & RBAC
-  const isDashboard = pathname.startsWith("/dashboard");
-  const isAdminPath = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
-  const isProtectedApi = pathname.startsWith("/api") && 
-                         !pathname.startsWith("/api/auth") && 
-                         !pathname.startsWith("/api/health") && 
-                         !pathname.startsWith("/api/notifications/upcoming");
+  // 3. Auth Protection & RBAC
+  const isProtected = pathname.startsWith("/dashboard") || 
+                     pathname.startsWith("/admin") || 
+                     (pathname.startsWith("/api") && !pathname.startsWith("/api/auth"));
 
-  if (isDashboard || isAdminPath || isProtectedApi) {
+  if (isProtected) {
     let token = req.cookies.get("token")?.value;
     const authHeader = req.headers.get("authorization");
     
@@ -99,22 +86,20 @@ export async function proxy(req: NextRequest) {
     }
 
     if (!token) {
-      if (isDashboard || isAdminPath) return NextResponse.redirect(new URL("/login", req.url));
-      return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Electronic session identity required." } }, { status: 401 });
+      if (!pathname.startsWith("/api")) return NextResponse.redirect(new URL("/login", req.url));
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     try {
       if (token.includes(".")) {
         const { payload } = await jwtVerify(token, JWT_SECRET);
-        
-        // RBAC: Admin exclusivity
-        if (isAdminPath && payload.role !== "ADMIN") {
-          return NextResponse.json({ success: false, error: { code: "FORBIDDEN", message: "Insufficient administrative clearance." } }, { status: 403 });
+        if (pathname.startsWith("/admin") && payload.role !== "ADMIN") {
+          return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
         }
       }
-    } catch {
-      if (isDashboard || isAdminPath) return NextResponse.redirect(new URL("/login", req.url));
-      return NextResponse.json({ success: false, error: { code: "UNAUTHORIZED", message: "Invalid or expired session token." } }, { status: 401 });
+    } catch (err) {
+      if (!pathname.startsWith("/api")) return NextResponse.redirect(new URL("/login", req.url));
+      return NextResponse.json({ success: false, error: "Session expired" }, { status: 401 });
     }
   }
 

@@ -2,57 +2,44 @@ import db from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
 import { registerSchema } from "@/lib/validators";
 import { successResponse, apiErrors } from "@/lib/api-response";
-
-export const dynamic = 'force-dynamic';
+import { validateRequest } from "@/lib/request-handler";
+import { registerUser } from "@/lib/services/auth.service";
 
 /**
  * Professional Registration Endpoint
- * Handles user creation with secure hashing and standardized error states.
  */
 export async function POST(req: Request) {
-  const context = { path: "/api/auth/register", method: "POST" };
-  
+  // 1. Validation & Sanitization (SOLID: S)
+  const validation = await validateRequest(req, registerSchema);
+  if (!validation.success) {
+    return apiErrors.BAD_REQUEST(validation.error);
+  }
+
+  const validatedData = validation.data;
+
   try {
-    const body = await req.json();
-    
-    // 1. Validation
-    const validationResult = registerSchema.safeParse(body);
-    if (!validationResult.success) {
-      return apiErrors.BAD_REQUEST(
-        validationResult.error.issues[0].message, 
-        { ...context, payload: body }
-      );
-    }
-
-    const validatedData = validationResult.data;
-
     // 2. Uniqueness Check
     const existingUser = await db.user.findUnique({
       where: { email: validatedData.email },
     });
 
     if (existingUser) {
-      return apiErrors.BAD_REQUEST("Electronic mail is already registered to another account.", context);
+      return apiErrors.BAD_REQUEST("Electronic mail is already registered to another account.");
     }
 
-    // 3. Password Security
+    // 3. Password Security & Tokens
     const passwordHash = await hashPassword(validatedData.password);
-
-    // 4. Generate verification token
     const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-    // 5. Data Persistence
-    const user = await db.user.create({
-      data: {
-        name: validatedData.name,
-        email: validatedData.email,
-        passwordHash,
-        emailVerified: false,
-        verificationToken
-      },
+    // 4. Data Persistence (SOLID: S)
+    const user = await registerUser({
+      name: validatedData.name,
+      email: validatedData.email,
+      passwordHash,
+      verificationToken
     });
 
-    // 6. Send legal verification email
+    // 5. Async side-effects (Email)
     const { sendLegalVerificationEmail } = await import("@/lib/mail");
     await sendLegalVerificationEmail({
       email: user.email,
@@ -60,10 +47,9 @@ export async function POST(req: Request) {
       token: verificationToken
     }).catch(console.error);
 
-    // 7. Auth Token Generation
+    // 6. Session Management
     const token = await signToken({ userId: user.id, email: user.email });
 
-    // 8. Success Response with Secure Cookie (Web + Mobile Support)
     const response = successResponse(
       { id: user.id, name: user.name, email: user.email, token, emailVerified: false },
       "Regulatory account created. Please verify your email to unlock your diary.",
@@ -80,11 +66,6 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: unknown) {
-    // 7. Standardized Server Error Handling
-    return apiErrors.SERVER_ERROR(
-      "A critical failure occurred during the registration process.",
-      error,
-      context
-    );
+    return apiErrors.SERVER_ERROR("A critical failure occurred during the registration process.", error);
   }
 }

@@ -53,7 +53,7 @@ export const getCases = async (userId: string, chamberId: string | null, limit: 
  * Retrieves a single case with full relational depth.
  */
 export const getCaseById = async (userId: string, chamberId: string | null, caseId: string) => {
-  return await db.case.findFirst({
+  const caseRecord = await db.case.findFirst({
     where: { 
       id: caseId,
       OR: chamberId ? [{ chamberId }] : [{ userId }]
@@ -65,6 +65,12 @@ export const getCaseById = async (userId: string, chamberId: string | null, case
       payments: { orderBy: { paymentDate: "desc" } },
     },
   });
+
+  if (caseRecord) {
+    await logger.info("Sensitive Case Record Accessed", { userId, caseId, caseNumber: caseRecord.caseNumber });
+  }
+
+  return caseRecord;
 };
 
 /**
