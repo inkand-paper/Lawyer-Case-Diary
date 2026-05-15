@@ -3,12 +3,22 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+interface HealthStatus {
+  uptime: number;
+  timestamp: string;
+  services: {
+    api: string;
+    database: string;
+  };
+  error?: string;
+}
+
 /**
  * PRODUCTION HEALTH CHECK ENDPOINT
  * Used by Load Balancers and Uptime Monitors to verify system integrity.
  */
 export async function GET() {
-  const status: Record<string, string | number | object> = {
+  const status: HealthStatus = {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     services: {
