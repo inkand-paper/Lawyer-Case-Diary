@@ -41,7 +41,7 @@ export async function POST() {
     });
 
     return response;
-  } catch (error) {
+  } catch (_error) {
     return apiErrors.UNAUTHORIZED("Session synchronization failed. Please login again.");
   }
 }

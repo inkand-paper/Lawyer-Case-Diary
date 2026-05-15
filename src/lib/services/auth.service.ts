@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import crypto from "crypto";
-import { hashPassword, signToken, signRefreshToken, verifyToken } from "@/lib/auth";
+import { signToken } from "@/lib/auth";
 
 /**
  * Professional Authentication & Security Service

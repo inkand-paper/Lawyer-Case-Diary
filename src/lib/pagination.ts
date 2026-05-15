@@ -15,7 +15,7 @@ export function getPagination(url: string): PaginationParams {
   const { searchParams } = new URL(url);
   
   let limit = Math.abs(Number(searchParams.get("limit")) || DEFAULT_LIMIT);
-  let offset = Math.abs(Number(searchParams.get("offset")) || 0);
+  const offset = Math.abs(Number(searchParams.get("offset")) || 0);
 
   // Enforcement: Never allow unbounded queries
   if (limit > MAX_LIMIT) limit = MAX_LIMIT;

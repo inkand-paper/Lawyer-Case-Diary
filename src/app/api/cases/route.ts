@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     const newCase = await createCase(user.id, user.chamberId, validation.data);
     
     return successResponse(newCase, "Case successfully enrolled in the diary system.", 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     const isPlanLimit = errorMsg.includes("Plan Limit");
     const message = isPlanLimit ? errorMsg : "A critical failure occurred while enrolling the case record.";
