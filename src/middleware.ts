@@ -33,7 +33,7 @@ export async function proxy(req: NextRequest) {
   if (!pathname.startsWith("/_next") && !pathname.includes(".")) {
     const now = Date.now();
     const windowMs = 60000; // 1 minute
-    const limit = 10;
+    const limit = 100;
 
     let record = rateLimitStore.get(ip);
     if (!record || now > record.resetAt) {
