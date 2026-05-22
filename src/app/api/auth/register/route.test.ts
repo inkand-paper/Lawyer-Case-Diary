@@ -12,7 +12,7 @@ vi.mock("@/lib/db", () => ({
       create: vi.fn(),
     },
     log: {
-      create: vi.fn(),
+      create: vi.fn().mockResolvedValue({}),
     },
   },
 }));
@@ -52,7 +52,7 @@ describe("POST /api/auth/register", () => {
       body: JSON.stringify({
         name: "John",
         email: "test@example.com",
-        password: "password123",
+        password: "Password123",
       }),
     });
 
@@ -79,7 +79,7 @@ describe("POST /api/auth/register", () => {
       body: JSON.stringify({
         name: "John",
         email: "test@example.com",
-        password: "password123",
+        password: "Password123",
       }),
     });
 

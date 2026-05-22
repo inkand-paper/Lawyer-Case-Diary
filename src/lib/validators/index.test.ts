@@ -7,7 +7,7 @@ describe("Validation Schemas", () => {
       const validData = {
         name: "John Doe",
         email: "john@example.com",
-        password: "securepassword123",
+        password: "Securepassword123",
       };
       const result = registerSchema.safeParse(validData);
       expect(result.success).toBe(true);
@@ -32,7 +32,7 @@ describe("Validation Schemas", () => {
       const invalidData = {
         name: "John",
         email: "not-an-email",
-        password: "securepassword123",
+        password: "Securepassword123",
       };
       const result = registerSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
