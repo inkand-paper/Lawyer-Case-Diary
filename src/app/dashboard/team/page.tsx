@@ -12,11 +12,15 @@ import {
   Plus, 
   Check, 
   X,
-  AlertCircle
+  AlertCircle,
+  Briefcase
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Chamber, Invitation } from "@/lib/types";
 import { fetchJson } from "@/lib/fetch-json";
+import { ChamberChat } from "@/components/dashboard/ChamberChat";
+import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import Link from "next/link";
 
 export default function TeamHub() {
   const [loading, setLoading] = useState(true);
@@ -27,6 +31,8 @@ export default function TeamHub() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [caseDrawerOpen, setCaseDrawerOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -310,6 +316,50 @@ export default function TeamHub() {
                   ))}
                 </div>
               </div>
+
+              {/* Shared Cases List */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 flex items-center gap-2">
+                    <Briefcase className="w-3 h-3" /> Shared Workspace Cases
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {(!chamber.cases || chamber.cases.length === 0) ? (
+                    <div className="p-10 rounded-[2rem] bg-[var(--surface)] border border-[var(--border)] border-dashed flex flex-col items-center justify-center gap-4 text-[var(--muted)]">
+                      <Briefcase className="w-8 h-8 opacity-20" />
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">No shared cases found</p>
+                    </div>
+                  ) : (
+                    chamber.cases.map(c => (
+                      <div
+                        key={c.id}
+                        onClick={() => { setSelectedCaseId(c.id); setCaseDrawerOpen(true); }}
+                        className="p-6 rounded-[2rem] bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-between cursor-pointer hover:border-blue-500/40 hover:bg-[var(--surface)] transition-all group"
+                      >
+                         <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 rounded-xl bg-[var(--foreground)] text-[var(--background)] flex items-center justify-center">
+                               <Scale className="w-5 h-5" />
+                            </div>
+                            <div>
+                               <p className="text-sm font-black text-[var(--foreground)]">{c.title}</p>
+                               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] mt-1">
+                                  <span>{c.caseNumber}</span>
+                                  <span>•</span>
+                                  <span>{c.client?.name || "No Client"}</span>
+                               </div>
+                            </div>
+                         </div>
+                         <div className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[9px] font-black uppercase tracking-widest">
+                            {c.status}
+                         </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <ChamberChat chamberId={chamber.id} />
             </div>
 
             {/* RIGHT COLUMN: Invites Status */}
@@ -437,6 +487,14 @@ export default function TeamHub() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Case Detail Drawer — accessible to all chamber members */}
+      <CaseEditorDrawer
+        isOpen={caseDrawerOpen}
+        caseId={selectedCaseId}
+        onClose={() => setCaseDrawerOpen(false)}
+        onSuccess={() => { fetchData(); setCaseDrawerOpen(false); }}
+      />
     </div>
   );
 }

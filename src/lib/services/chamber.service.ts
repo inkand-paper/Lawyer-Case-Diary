@@ -42,6 +42,9 @@ export const getChamberContext = async (chamberId: string) => {
       },
       invites: {
         where: { status: "PENDING" }
+      },
+      cases: {
+        select: { id: true, title: true, caseNumber: true, status: true, client: { select: { name: true } } }
       }
     }
   });

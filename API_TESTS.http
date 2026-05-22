@@ -1,0 +1,178 @@
+@baseUrl = http://localhost:3000/api
+@adminEmail = tabir8431@gmail.com
+@adminPass = 12345678
+
+### ========================================
+### 1. AUTHENTICATION (Run sequentially)
+### ========================================
+
+# @name Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "name": "Harvey Specter",
+    "email": "{{adminEmail}}",
+    "password": "{{adminPass}}"
+}
+
+###
+
+# @prompt OTP Enter the exact 6-digit OTP code printed in the terminal or DB here
+# @name VerifyAccount
+POST {{baseUrl}}/auth/verify
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}",
+    "code": "{{OTP}}"
+}
+
+###
+
+# @name Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}",
+    "password": "{{adminPass}}"
+}
+
+### 
+# Extract the returned JWT Token from the Login Request dynamically
+@authToken = {{Login.response.body.token}}
+
+### ========================================
+### 2. SETTINGS & PROFILE
+### ========================================
+
+# @name GetMyProfile
+GET {{baseUrl}}/me
+Authorization: Bearer {{authToken}}
+
+###
+
+# @name GetStats
+GET {{baseUrl}}/stats
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 3. CHAMBERS (TEAM WORKSPACES)
+### ========================================
+
+# @name CreateChamber
+POST {{baseUrl}}/chambers
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Pearson Specter Litt"
+}
+
+###
+
+# @name CheckChamberContext
+GET {{baseUrl}}/chambers
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 4. CLIENTS
+### ========================================
+
+# @name CreateClient
+POST {{baseUrl}}/clients
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Mike Ross",
+    "email": "mike@ross.com",
+    "phone": "+1-555-010-9999",
+    "address": "123 Legal Avenue, NY"
+}
+
+###
+@clientId = {{CreateClient.response.body.data.id}}
+
+# @name GetAllClients
+GET {{baseUrl}}/clients
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 5. CASES
+### ========================================
+
+# @name CreateCase
+POST {{baseUrl}}/cases
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "title": "Ross vs State",
+    "caseNumber": "CR-2026-991A",
+    "courtName": "NY Supreme Court",
+    "judgeName": "Hon. Robert Zane",
+    "clientId": "{{clientId}}"
+}
+
+###
+@caseId = {{CreateCase.response.body.data.id}}
+
+
+# @name GetAllCases
+GET {{baseUrl}}/cases
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 6. HEARINGS & DOCKET
+### ========================================
+
+# @name CreateHearing
+POST {{baseUrl}}/hearings
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "caseId": "{{caseId}}",
+    "hearingDate": "2026-06-25T10:00:00Z",
+    "notes": "Initial arraignment."
+}
+
+###
+
+# @name CalendarExport (Public feed test)
+GET {{baseUrl}}/hearings/calendar
+Authorization: Bearer {{authToken}}
+
+### ========================================
+### 7. NEW PASSWORD RESET FLOW
+### ========================================
+
+# @name ForgotPassword
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}"
+}
+
+###
+
+# @prompt ResetCode Enter the 6 digit reset code from DB
+# @name ResetPassword
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}",
+    "code": "{{ResetCode}}",
+    "newPassword": "NewStrongPassword456!"
+}
+
+### ========================================
+### 8. CLIENT PORTAL (PUBLIC)
+### ========================================
+
+# @name PublicCaseStatus
+GET {{baseUrl}}/public/cases/CR-2026-991A

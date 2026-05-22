@@ -28,14 +28,21 @@ export const revokeApiKey = async (userId: string, id: string) => {
   });
 };
 
-export const registerUser = async (data: { name: string, email: string, passwordHash: string, verificationToken: string }) => {
+export const registerUser = async (data: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  verificationToken: string;
+  verificationTokenExpiry: Date;
+}) => {
   return await db.user.create({
     data: {
       name: data.name,
       email: data.email,
       passwordHash: data.passwordHash,
       emailVerified: false,
-      verificationToken: data.verificationToken
+      verificationToken: data.verificationToken,
+      verificationTokenExpiry: data.verificationTokenExpiry,
     },
   });
 };

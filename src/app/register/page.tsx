@@ -43,7 +43,8 @@ export default function RegisterPage() {
       const result = await res.json();
 
       if (result.success) {
-        router.push("/dashboard");
+        const userEmail = formData.get("email");
+        router.push(`/verify?email=${userEmail}`);
       } else {
         setError(
           result.error?.message ||

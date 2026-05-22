@@ -3,6 +3,7 @@ import { successResponse, apiErrors } from "@/lib/api-response";
 import db from "@/lib/db";
 import { invitationSchema } from "@/lib/validators";
 import { logger } from "@/lib/services/logger.service";
+import { sendEmail } from "@/lib/nodemailer";
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,16 @@ export async function POST(req: Request) {
       }
     });
 
-    // TODO: Send Email Notification via Mailer Service
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    await sendEmail({
+      to: validation.data.email,
+      subject: `Invitation to join ${chamber?.name || 'a Chamber'}`,
+      html: `
+        <h2>You've been invited!</h2>
+        <p>You have been invited to join <strong>${chamber?.name || 'a Chamber'}</strong> as a <strong>${validation.data.role}</strong>.</p>
+        <p>Please log in or register at <a href="${appUrl}/login">${appUrl}/login</a> to accept this invitation.</p>
+      `
+    });
 
     await logger.info("Chamber invitation sent", { 
       from: user.id, 

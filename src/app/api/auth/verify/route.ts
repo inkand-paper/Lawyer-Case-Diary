@@ -1,41 +1,51 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get("token");
+    const { email, code } = await req.json();
 
-    if (!token) {
-      return NextResponse.json({ error: "Missing verification token" }, { status: 400 });
+    if (!email || !code) {
+      return NextResponse.json({ error: "Missing email or verification code" }, { status: 400 });
     }
 
-    // 1. Find user with this token
+    // 1. Find user with this email
     const user = await db.user.findUnique({
-      where: { verificationToken: token },
+      where: { email },
     });
 
-    if (!user) {
+    // 2. Validate token AND expiry
+    const now = new Date();
+    const tokenValid = user?.verificationToken === code;
+    // verificationTokenExpiry may be null for older accounts (before this fix)
+    // — in that case we treat the token as expired for safety.
+    const notExpired =
+      user?.verificationTokenExpiry != null && user.verificationTokenExpiry > now;
+
+    if (!user || !tokenValid || !notExpired) {
       return NextResponse.json(
-        { error: "Invalid or expired verification link." }, 
-        { status: 404 }
+        { error: "Invalid or expired verification code. Please request a new one." },
+        { status: 400 }
       );
     }
 
-    // 2. Activate Account
+    if (user.emailVerified) {
+      return NextResponse.json({ success: true, message: "Email is already verified." });
+    }
+
+    // 3. Activate Account — clear token on success
     await db.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
-        verificationToken: null, // Wipe token after successful use
+        verificationToken: null,
+        verificationTokenExpiry: null,
       },
     });
 
-    // 3. Redirect to login with success signal
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    return NextResponse.redirect(`${appUrl}/login?verified=true`);
+    return NextResponse.json({ success: true, message: "Account successfully verified." });
   } catch (error) {
     console.error("❌ Verification fatal error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

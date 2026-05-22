@@ -108,13 +108,13 @@ export default function Dashboard() {
             Please verify your email to access your account and case files.
           </p>
           <div className="flex flex-col gap-3">
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:opacity-80"
+            <Link
+              href={`/verify?email=${encodeURIComponent(data.user?.email || "your-email")}`}
+              className="px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:opacity-80 text-center"
               style={{ background: "var(--foreground)", color: "var(--background)" }}
             >
               Verify Email
-            </button>
+            </Link>
             <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
               Once verified, your account will unlock.
             </p>

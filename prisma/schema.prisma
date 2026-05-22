@@ -14,7 +14,10 @@ model User {
   role          String    @default("LAWYER") // ADMIN (System), LAWYER
   plan          String    @default("ESSENTIAL") // ESSENTIAL, EXECUTIVE, ULTIMATE
   emailVerified Boolean   @default(false)
-  verificationToken String? @unique
+  verificationToken       String?   @unique
+  verificationTokenExpiry DateTime?                  // Token expiry — codes are valid 24h
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
   
   // Team Support
   chamberId     String?
@@ -25,6 +28,8 @@ model User {
   reminders     Reminder[]
   apiKeys       ApiKey[]
   refreshTokens RefreshToken[]
+  chamberMessages ChamberMessage[]
+  subscription  Subscription?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -38,6 +43,7 @@ model Chamber {
   clients     Client[]
   cases       Case[]
   invites     Invitation[]
+  messages    ChamberMessage[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -50,8 +56,20 @@ model Invitation {
   chamber     Chamber  @relation(fields: [chamberId], references: [id])
   role        String   @default("MEMBER") // OWNER, ADMIN, MEMBER
   status      String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  expiresAt   DateTime @default(dbgenerated("NOW() + interval '7 days'")) // Invites expire after 7 days
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ChamberMessage {
+  id        String   @id @default(uuid())
+  chamberId String
+  chamber   Chamber  @relation(fields: [chamberId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Client {
@@ -93,6 +111,7 @@ model Case {
   notes       Note[]
   payments    Payment[]
   reminders   Reminder[]
+  documents   Document[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -143,6 +162,33 @@ model Reminder {
   status    String   @default("PENDING") // PENDING, SENT, CANCELLED
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([remindAt, status])  // Critical for the reminder cron job query
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id])
+  name      String
+  fileUrl   String
+  size      Int
+  type      String   // application/pdf, image/png, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  stripeCustomerId String?
+  stripeSubId      String?
+  plan             String   @default("ESSENTIAL") // ESSENTIAL, PREMIUM, ULTIMATE
+  status           String   @default("active") // active, past_due, canceled
+  currentPeriodEnd DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Log {

@@ -55,7 +55,8 @@ export interface Hearing {
   hearingDate: string | Date;
   nextDate?: string | Date | null;
   notes?: string | null;
-  status: "PENDING" | "COMPLETED" | "ADJOURNED";
+  // NOTE: Hearing has no status field in the schema.
+  // If you need hearing statuses, add it to the Prisma schema first.
   case?: Case;
 }
 
@@ -65,13 +66,15 @@ export interface Chamber {
   ownerId: string;
   members?: User[];
   invites?: Invitation[];
+  cases?: Case[];
 }
 
 export interface Invitation {
   id: string;
   email: string;
   role: UserRole;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: "PENDING" | "ACCEPTED" | "DECLINED"; // matches schema: PENDING, ACCEPTED, DECLINED
   chamberId: string;
+  expiresAt?: Date | null;
   chamber?: Chamber;
 }

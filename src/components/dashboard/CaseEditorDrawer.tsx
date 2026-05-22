@@ -13,25 +13,25 @@
  * ============================================================
  */
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import {
-  X,
-  Briefcase,
-  MapPin,
-  Scale,
-  Users,
-  Loader2,
-  Save,
-  Trash2,
-  Calendar,
-  Plus,
-  AlertCircle,
-  Crown,
-} from "lucide-react";
-import { Case, Client, Hearing } from "@/lib/types";
+import { ChamberShareButton } from "@/components/dashboard/ChamberShareButton";
 import { fetchJson } from "@/lib/fetch-json";
+import { Case, Client, Hearing } from "@/lib/types";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+    AlertCircle,
+    Briefcase,
+    Calendar,
+    Crown,
+    Loader2,
+    Plus,
+    Save,
+    Scale,
+    Trash2,
+    Users,
+    X
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 interface CaseEditorDrawerProps {
   isOpen: boolean;
@@ -484,6 +484,12 @@ export function CaseEditorDrawer({
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
+                    )}
+                    {caseId && (
+                      <ChamberShareButton 
+                        caseId={caseId} 
+                        isShared={!!caseData?.chamberId} 
+                      />
                     )}
                     <button
                       type="submit"

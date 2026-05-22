@@ -27,23 +27,37 @@ export async function PATCH(
   const adminId = await verifyAdmin();
   if (!adminId) return apiErrors.UNAUTHORIZED("Admin clearance required.");
 
+  // Resolve target user ID first — needed for self-demotion check
+  const { id } = await params;
+
+  // Self-demotion guard BEFORE reading body
+  // Prevents a malformed body from even reaching the DB
+  const body = await req.json();
+  const { plan, role } = body;
+
+  if (id === adminId && role && role !== "ADMIN") {
+    return apiErrors.BAD_REQUEST("Self-demotion is not permitted to prevent accidental lockouts.");
+  }
+
+  // Validate plan/role values
+  const validPlans = ["FREE", "ESSENTIAL", "EXECUTIVE", "ULTIMATE"];
+  const validRoles = ["ADMIN", "LAWYER", "MEMBER"];
+
+  if (plan && !validPlans.includes(plan)) {
+    return apiErrors.BAD_REQUEST(`Invalid plan. Must be one of: ${validPlans.join(", ")}`);
+  }
+  if (role && !validRoles.includes(role)) {
+    return apiErrors.BAD_REQUEST(`Invalid role. Must be one of: ${validRoles.join(", ")}`);
+  }
+
   try {
-    const { id } = await params;
-    const body = await req.json();
-    const { plan, role } = body;
-
-    // Prevent self-demotion
-    if (role && role !== "ADMIN" && id === adminId) {
-      return apiErrors.BAD_REQUEST("Self-demotion is not permitted to prevent accidental lockouts.");
-    }
-
     const updatedUser = await db.user.update({
       where: { id },
-      data: { 
+      data: {
         ...(plan && { plan }),
-        ...(role && { role })
+        ...(role && { role }),
       },
-      select: { id: true, name: true, email: true, plan: true, role: true }
+      select: { id: true, name: true, email: true, plan: true, role: true },
     });
 
     return successResponse(updatedUser, "Practitioner profile updated successfully.");

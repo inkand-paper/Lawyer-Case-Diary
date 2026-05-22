@@ -1,6 +1,7 @@
 import { render } from "@react-email/components";
 import React from "react";
 import { LegalVerificationEmail } from "@/components/emails/verification";
+import { ResetPasswordEmail } from "@/components/emails/reset-password";
 import { sendEmail } from "./nodemailer";
 
 /**
@@ -18,12 +19,9 @@ export async function sendLegalVerificationEmail({
   token: string;
 }) {
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const verificationUrl = `${appUrl}/api/auth/verify?token=${token}`;
-
     const html = await render(React.createElement(LegalVerificationEmail, {
       userName,
-      verificationUrl
+      verificationCode: token
     }));
 
     return await sendEmail({
@@ -36,3 +34,30 @@ export async function sendLegalVerificationEmail({
     return { success: false, error };
   }
 }
+
+export async function sendPasswordResetEmail({
+  email,
+  userName,
+  token
+}: {
+  email: string;
+  userName: string;
+  token: string;
+}) {
+  try {
+    const html = await render(React.createElement(ResetPasswordEmail, {
+      userName,
+      resetCode: token
+    }));
+
+    return await sendEmail({
+      to: email,
+      subject: "Password Reset Request: Lawyer Case Diary",
+      html: html,
+    });
+  } catch (error) {
+    console.error("❌ Failed to send password reset email:", error);
+    return { success: false, error };
+  }
+}
+

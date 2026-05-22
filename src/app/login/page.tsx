@@ -45,7 +45,13 @@ export default function LoginPage() {
       if (result.success) {
         router.push("/dashboard");
       } else {
-        setError(result.error?.message || "Invalid credentials. Please try again.");
+        const errorMessage = result.error?.message || result.error;
+        if (typeof errorMessage === "string" && errorMessage.includes("verification required")) {
+          const userEmail = formData.get("email");
+          router.push(`/verify?email=${encodeURIComponent(userEmail as string)}`);
+        } else {
+          setError(errorMessage || "Invalid credentials. Please try again.");
+        }
       }
     } catch {
       setError("Network error — check your connection and try again.");
@@ -152,7 +158,7 @@ export default function LoginPage() {
                 Password
               </label>
               <Link
-                href="#"
+                href="/forgot-password"
                 className="text-[10px] font-black uppercase tracking-widest transition-colors"
                 style={{ color: "var(--muted)" }}
                 onMouseEnter={(e) => {

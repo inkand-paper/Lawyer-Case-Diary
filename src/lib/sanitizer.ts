@@ -1,3 +1,4 @@
+import sanitizeHtml from "sanitize-html";
 /**
  * [XSS PROTECTION ENGINE]
  * Professional input scrubbing for the Lawyer Case Diary.
@@ -7,11 +8,15 @@
 export function sanitizeInput(input: string): string {
   if (!input) return "";
 
-  return input
-    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "[BLOCKED_SCRIPT]") // Block <script> tags
-    .replace(/on\w+="[^"]*"/gim, "[BLOCKED_EVENT]") // Block inline event handlers (onerror, onclick, etc)
-    .replace(/javascript:[^"']*/gim, "[BLOCKED_JS]") // Block javascript: URLs
-    .trim();
+  // Use DOM-parsing sanitizer rather than bypassable Regex
+  return sanitizeHtml(input, {
+    allowedTags: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li"],
+    allowedAttributes: {
+      a: ["href"]
+    },
+    allowedIframeHostnames: [], // Block all iframes
+    disallowedTagsMode: 'discard'
+  }).trim();
 }
 
 /**

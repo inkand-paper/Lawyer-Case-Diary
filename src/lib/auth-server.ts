@@ -3,9 +3,8 @@ import { cookies, headers } from "next/headers";
 import db from "@/lib/db";
 import crypto from "crypto";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_for_dev_only"
-);
+// JWT_SECRET is validated at startup in db.ts — safe to assert non-null here.
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 async function getAuthUser() {
   try {
@@ -57,6 +56,7 @@ async function getAuthContext() {
       role: true,
       plan: true,
       chamberId: true,
+      emailVerified: true,
     },
   });
 }

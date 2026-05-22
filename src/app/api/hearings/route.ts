@@ -5,7 +5,7 @@
  */
 
 export const dynamic = 'force-dynamic';
-import { getAuthUser } from "@/lib/auth-server";
+import { getAuthContext } from "@/lib/auth-server";
 import { createHearing } from "@/lib/services/hearing.service";
 import { hearingSchema } from "@/lib/validators";
 import { successResponse, apiErrors } from "@/lib/api-response";
@@ -16,12 +16,14 @@ import db from "@/lib/db";
  * Recovers all hearings associated with the practitioner's portfolio.
  */
 export async function GET() {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED("Electronic session expired or invalid.");
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED("Electronic session expired or invalid.");
 
   try {
     const hearings = await db.hearing.findMany({
-      where: { case: { userId } },
+      where: user.chamberId
+        ? { case: { OR: [{ userId: user.id }, { chamberId: user.chamberId }] } }
+        : { case: { userId: user.id } },
       include: { case: true },
       orderBy: { hearingDate: "asc" },
     });
@@ -36,15 +38,15 @@ export async function GET() {
  * Enrolls a new court session into the case timeline.
  */
 export async function POST(req: Request) {
-  const userId = await getAuthUser();
-  if (!userId) return apiErrors.UNAUTHORIZED("Authorization required for hearing enrollment.");
+  const user = await getAuthContext();
+  if (!user) return apiErrors.UNAUTHORIZED("Authorization required for hearing enrollment.");
 
   try {
     // 1. Idempotency Check (Production Safeguard)
     const idempotencyKey = req.headers.get("Idempotency-Key");
     if (idempotencyKey) {
       const { getIdempotentResponse } = await import("@/lib/idempotency");
-      const cachedResponse = await getIdempotentResponse(userId, idempotencyKey);
+      const cachedResponse = await getIdempotentResponse(user.id, idempotencyKey);
       if (cachedResponse) return cachedResponse;
     }
 
@@ -57,13 +59,13 @@ export async function POST(req: Request) {
     }
 
     // 3. Persistent Enrollment
-    const hearing = await createHearing(userId, validationResult.data);
+    const hearing = await createHearing(user.id, validationResult.data, user.chamberId);
     const response = successResponse(hearing, "Hearing successfully enrolled in the procedural timeline.", 201);
 
     // 4. Save for Idempotency if key provided
     if (idempotencyKey) {
       const { saveIdempotentResponse } = await import("@/lib/idempotency");
-      await saveIdempotentResponse(userId, idempotencyKey, response as import("next/server").NextResponse);
+      await saveIdempotentResponse(user.id, idempotencyKey, response as import("next/server").NextResponse);
     }
 
     return response;

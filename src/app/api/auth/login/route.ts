@@ -35,7 +35,14 @@ export async function POST(req: Request) {
 
     // 4. Response Construction
     const response = successResponse(
-      { id: user.id, name: user.name, email: user.email, token: accessToken },
+      { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        plan: user.plan,
+        token: accessToken 
+      },
       "Authentication successful."
     );
 

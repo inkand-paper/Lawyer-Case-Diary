@@ -13,12 +13,12 @@ import * as React from "react";
 
 interface VerificationEmailProps {
   userName: string;
-  verificationUrl: string;
+  verificationCode: string;
 }
 
 export const LegalVerificationEmail = ({
   userName,
-  verificationUrl,
+  verificationCode,
 }: VerificationEmailProps) => (
   <Html>
     <Head />
@@ -33,10 +33,8 @@ export const LegalVerificationEmail = ({
           <Text style={text}>
             To ensure the security and privacy of your legal files and client data, we require all professionals to verify their email address before accessing the secure portal.
           </Text>
-          <Section style={btnContainer}>
-            <Link style={button} href={verificationUrl}>
-              Confirm Professional Identity
-            </Link>
+          <Section style={codeContainer}>
+            <Text style={codeText}>{verificationCode}</Text>
           </Section>
           <Text style={text}>
             If you did not initiate this request, please contact our security team immediately.
@@ -91,22 +89,21 @@ const text = {
   textAlign: "left" as const,
 };
 
-const btnContainer = {
+const codeContainer = {
   textAlign: "center" as const,
   margin: "40px 0",
+  padding: "24px",
+  backgroundColor: "#f1f5f9",
+  borderRadius: "8px",
 };
 
-const button = {
-  backgroundColor: "#1e293b",
-  borderRadius: "0px",
-  color: "#fff",
-  fontSize: "14px",
+const codeText = {
+  color: "#0f172a",
+  fontSize: "36px",
   fontWeight: "bold",
-  textDecoration: "none",
+  letterSpacing: "8px",
+  margin: "0",
   textAlign: "center" as const,
-  display: "block",
-  padding: "18px",
-  border: "1px solid #0f172a",
 };
 
 const footer = {

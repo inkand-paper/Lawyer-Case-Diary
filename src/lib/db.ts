@@ -2,6 +2,19 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
+// ── Startup Guards ─────────────────────────────────────────────────────────────
+// Fail immediately rather than allowing a misconfigured deployment to serve
+// requests with an insecure fallback JWT secret or no database.
+if (!process.env.DATABASE_URL) {
+  throw new Error("FATAL: DATABASE_URL environment variable is not set.");
+}
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    "FATAL: JWT_SECRET environment variable is not set. " +
+    "Generate one with: openssl rand -base64 32"
+  );
+}
+
 /**
  * Prisma Client Singleton for Prisma 7 + PostgreSQL Adapter
  * This configuration resolves the "PrismaClientInitializationError" in Next.js 16/Prisma 7
@@ -18,10 +31,13 @@ const prismaClientSingleton = () => {
 
   const pool = new Pool({ 
     connectionString,
-    // Optimal pooler settings for Supabase
-    max: 20,
-    idleTimeoutMillis: 60000,
-    connectionTimeoutMillis: 30000, // 30s allowance for cold starts
+    // Serverless-safe pool size.
+    // Supabase free tier: ~20 total connections.
+    // With many serverless instances, max:20 per instance exhausts the limit.
+    // max:2 keeps us safely within bounds while still benefiting from pooling.
+    max: 2,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
   });
 
   const adapter = new PrismaPg(pool);

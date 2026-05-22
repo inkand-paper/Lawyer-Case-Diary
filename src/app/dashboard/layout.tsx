@@ -22,6 +22,49 @@ import { NotificationDropdown } from "@/components/dashboard/NotificationDropdow
 import { ThemeGlider } from "@/components/dashboard/ThemeGlider";
 import { SearchProvider, useSearch } from "@/context/SearchContext";
 import { User as UserType } from "@/lib/types";
+import { useRouter } from "next/navigation";
+
+function VerificationGate({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let ignore = false;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/me");
+        const json = await res.json();
+        if (!ignore) {
+          if (!json.success) {
+            router.replace("/login");
+          } else if (!json.data?.emailVerified) {
+            router.replace(`/verify?email=${encodeURIComponent(json.data?.email || "")}`);
+          } else {
+            setChecking(false);
+          }
+        }
+      } catch {
+        if (!ignore) router.replace("/login");
+      }
+    };
+    check();
+    return () => { ignore = true; };
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--foreground)", borderTopColor: "transparent" }} />
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>Verifying Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 
 function HeaderContent() {
   const [user, setUser] = useState<UserType | null>(null);
@@ -120,17 +163,19 @@ function HeaderContent() {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SearchProvider>
-      <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
-        <Sidebar />
-        <main className="flex-1 flex flex-col min-w-0 relative">
-          <HeaderContent />
-          <div className="flex-1 p-4 sm:p-6 lg:p-12 overflow-x-hidden">
-            {children}
-          </div>
-          <div className="h-20 lg:hidden shrink-0 pb-safe" style={{ background: "var(--surface)" }} />
-        </main>
-        <BottomNav />
-      </div>
+      <VerificationGate>
+        <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
+          <Sidebar />
+          <main className="flex-1 flex flex-col min-w-0 relative">
+            <HeaderContent />
+            <div className="flex-1 p-4 sm:p-6 lg:p-12 overflow-x-hidden">
+              {children}
+            </div>
+            <div className="h-20 lg:hidden shrink-0 pb-safe" style={{ background: "var(--surface)" }} />
+          </main>
+          <BottomNav />
+        </div>
+      </VerificationGate>
     </SearchProvider>
   );
 }

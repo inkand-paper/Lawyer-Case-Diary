@@ -1,12 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback_secret_for_dev_only"
-);
+// JWT_SECRET is validated at startup in db.ts — safe to assert non-null here.
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export const hashPassword = async (password: string) => {
-  return await bcrypt.hash(password, 10);
+  // Cost 12 is the current recommendation for legal/sensitive applications.
+  // Cost 10 is crackable by modern GPUs in seconds.
+  return await bcrypt.hash(password, 12);
 };
 
 export const comparePassword = async (password: string, hash: string) => {

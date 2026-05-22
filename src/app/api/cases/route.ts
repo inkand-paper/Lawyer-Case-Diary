@@ -22,9 +22,12 @@ export async function GET(req: Request) {
   if (!user) return apiErrors.UNAUTHORIZED("Electronic session expired or invalid.");
 
   try {
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search") || undefined;
+    const status = searchParams.get("status") || undefined;
     const { limit, offset } = getPagination(req.url);
 
-    const cases = await getCases(user.id, user.chamberId, limit, offset);
+    const cases = await getCases(user.id, user.chamberId, limit, offset, search, status);
     return successResponse(cases, "Case registry synchronized successfully.");
   } catch (error) {
     return apiErrors.SERVER_ERROR("Failed to recover case data from the legal core.", error);
@@ -51,7 +54,9 @@ export async function POST(req: Request) {
     await checkCaseLimit(user.id, user.plan);
 
     // 3. Persistent Enrollment
-    const newCase = await createCase(user.id, user.chamberId, validation.data);
+    const { isChamberCase, ...caseData } = validation.data;
+    const targetChamberId = isChamberCase ? user.chamberId : null;
+    const newCase = await createCase(user.id, targetChamberId, caseData);
     
     return successResponse(newCase, "Case successfully enrolled in the diary system.", 201);
   } catch (error: unknown) {

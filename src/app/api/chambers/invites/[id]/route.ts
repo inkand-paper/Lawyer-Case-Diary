@@ -27,6 +27,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     if (action === "ACCEPT") {
+      if (user.chamberId) {
+        return apiErrors.BAD_REQUEST("You are already part of a Chamber. You cannot join another one simultaneously.");
+      }
+
       // Atomic Join
       await db.$transaction([
         db.invitation.update({

@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import { ChamberShareButton } from "@/components/dashboard/ChamberShareButton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useSearch } from "@/context/SearchContext";
 import { Case } from "@/lib/types";
@@ -192,7 +193,12 @@ export default function CasesPage() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted mt-0.5">{c.caseNumber}</p>
                     </div>
                   </div>
-                  <StatusBadge status={c.status} className="shrink-0" />
+                  <div className="flex items-center gap-2">
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ChamberShareButton caseId={c.id} isShared={!!c.chamberId} />
+                    </div>
+                    <StatusBadge status={c.status} className="shrink-0" />
+                  </div>
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-base">
@@ -287,6 +293,9 @@ export default function CasesPage() {
                           <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
                             <ChevronRight className="w-4 h-4" />
                           </button>
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <ChamberShareButton caseId={c.id} isShared={!!c.chamberId} />
+                          </div>
                           <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
                             <MoreHorizontal className="w-4 h-4" />
                           </button>

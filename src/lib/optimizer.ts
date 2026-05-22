@@ -1,38 +1,34 @@
 /**
  * Optimizer Suite Integration
- * Triggers instant cache revalidation in the Next.js UI tier.
+ * Triggers cache revalidation in the Next.js UI tier.
+ *
+ * IMPORTANT: Both functions are intentionally fire-and-forget.
+ * Cache revalidation must NEVER block or slow down API responses.
+ * If the optimizer is down, mutations still succeed.
  */
 
-export const revalidateTag = async (tag: string) => {
+export const revalidateTag = (tag: string): void => {
   if (!process.env.OPTIMIZER_URL || !process.env.OPTIMIZER_KEY) {
-    console.warn("⚠️ Optimizer not configured. Skipping revalidation for tag:", tag);
+    // Silently skip in dev — warn only once at startup is enough
     return;
   }
 
-  try {
-    const res = await fetch(process.env.OPTIMIZER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPTIMIZER_KEY}`,
-      },
-      body: JSON.stringify({ tag }),
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ Optimizer failed for tag [${tag}]:`, errorText);
-    } else {
-      console.log(`⚡ Optimizer triggered successfully for tag: ${tag}`);
-    }
-  } catch (err) {
-    console.error(`❌ Optimizer error for tag [${tag}]:`, err);
-  }
+  fetch(process.env.OPTIMIZER_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPTIMIZER_KEY}`,
+    },
+    body: JSON.stringify({ tag }),
+  }).catch((err) => {
+    console.error(`[OPTIMIZER] Failed for tag [${tag}]:`, err);
+  });
+  // No await — intentional fire-and-forget
 };
 
 /**
- * Batch revalidation utility
+ * Batch revalidation — fires all in parallel, none blocking the caller.
  */
-export const revalidateTags = async (tags: string[]) => {
-  await Promise.all(tags.map((tag) => revalidateTag(tag)));
+export const revalidateTags = (tags: string[]): void => {
+  tags.forEach((tag) => revalidateTag(tag));
 };

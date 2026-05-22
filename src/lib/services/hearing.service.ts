@@ -18,11 +18,12 @@ export interface CreateHearingData {
  * @param userId - Requesting practitioner.
  * @param data - Hearing metadata including next date logic.
  */
-export const createHearing = async (userId: string, data: CreateHearingData) => {
-  // 1. Verify existence and ownership of the parent case
-  const existingCase = await db.case.findFirst({
-    where: { id: data.caseId, userId },
-  });
+export const createHearing = async (userId: string, data: CreateHearingData, chamberId?: string | null) => {
+  // 1. Verify existence and ownership — allows chamber members
+  const caseWhere = chamberId
+    ? { id: data.caseId, OR: [{ userId }, { chamberId }] }
+    : { id: data.caseId, userId };
+  const existingCase = await db.case.findFirst({ where: caseWhere });
 
   if (!existingCase) {
     throw new Error("Case not found or unauthorized access to record.");
@@ -59,10 +60,13 @@ export const createHearing = async (userId: string, data: CreateHearingData) => 
 /**
  * Updates a specific hearing event.
  */
-export const updateHearing = async (userId: string, hearingId: string, data: Partial<CreateHearingData>) => {
-  // Verify ownership via the case relationship
+export const updateHearing = async (userId: string, hearingId: string, data: Partial<CreateHearingData>, chamberId?: string | null) => {
+  // Verify ownership via the case relationship — allows chamber members
+  const caseFilter = chamberId
+    ? { OR: [{ userId }, { chamberId }] }
+    : { userId };
   const targetHearing = await db.hearing.findFirst({
-    where: { id: hearingId, case: { userId } },
+    where: { id: hearingId, case: caseFilter },
   });
 
   if (!targetHearing) throw new Error("Hearing record not found or access denied.");
@@ -83,9 +87,12 @@ export const updateHearing = async (userId: string, hearingId: string, data: Par
 /**
  * Removes a hearing record from the timeline.
  */
-export const deleteHearing = async (userId: string, hearingId: string) => {
+export const deleteHearing = async (userId: string, hearingId: string, chamberId?: string | null) => {
+  const caseFilter = chamberId
+    ? { OR: [{ userId }, { chamberId }] }
+    : { userId };
   const targetHearing = await db.hearing.findFirst({
-    where: { id: hearingId, case: { userId } },
+    where: { id: hearingId, case: caseFilter },
   });
 
   if (!targetHearing) throw new Error("Hearing record not found or access denied.");

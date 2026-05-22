@@ -24,35 +24,38 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
-      return apiErrors.BAD_REQUEST("Electronic mail is already registered to another account.");
+      return apiErrors.BAD_REQUEST("Email is already registered to another account.");
     }
 
-    // 3. Password Security & Tokens
+    // 3. Password Security & Verification Token
     const passwordHash = await hashPassword(validatedData.password);
-    const verificationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    // Token expires in 24 hours
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // 4. Data Persistence (SOLID: S)
     const user = await registerUser({
       name: validatedData.name,
       email: validatedData.email,
       passwordHash,
-      verificationToken
+      verificationToken,
+      verificationTokenExpiry,
     });
 
-    // 5. Async side-effects (Email)
+    // 5. Send verification email (fire-and-forget — never fail registration over email)
     const { sendLegalVerificationEmail } = await import("@/lib/mail");
-    await sendLegalVerificationEmail({
+    sendLegalVerificationEmail({
       email: user.email,
       userName: user.name,
-      token: verificationToken
-    }).catch(console.error);
+      token: verificationToken,
+    }).catch((err) => console.error("[REGISTER] Failed to send verification email:", err));
 
-    // 6. Session Management
+    // 6. Issue short-lived token (unverified session — limited access until email confirmed)
     const token = await signToken({ userId: user.id, email: user.email });
 
     const response = successResponse(
       { id: user.id, name: user.name, email: user.email, token, emailVerified: false },
-      "Regulatory account created. Please verify your email to unlock your diary.",
+      "Account created. Please check your email to verify within 24 hours.",
       201
     );
 
@@ -60,12 +63,12 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 24,
       path: "/",
     });
 
     return response;
   } catch (error: unknown) {
-    return apiErrors.SERVER_ERROR("A critical failure occurred during the registration process.", error);
+    return apiErrors.SERVER_ERROR("A critical failure occurred during registration.", error);
   }
 }
