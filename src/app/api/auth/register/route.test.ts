@@ -45,7 +45,7 @@ describe("POST /api/auth/register", () => {
     vi.mocked(db.user.findUnique).mockResolvedValueOnce({
       id: "1",
       email: "test@example.com",
-    } as unknown as User);
+    } as any);
 
     const req = new Request("http://localhost/api/auth/register", {
       method: "POST",
@@ -71,7 +71,7 @@ describe("POST /api/auth/register", () => {
       id: "123",
       name: "John",
       email: "test@example.com",
-    } as unknown as User);
+    } as any);
     vi.mocked(signToken).mockResolvedValueOnce("mock_jwt_token");
 
     const req = new Request("http://localhost/api/auth/register", {
