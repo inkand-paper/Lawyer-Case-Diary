@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getAuthContext } from "@/lib/auth-server";
 import { successResponse, apiErrors } from "@/lib/api-response";

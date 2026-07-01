@@ -20,7 +20,6 @@ import { User, Chamber, Invitation } from "@/lib/types";
 import { fetchJson } from "@/lib/fetch-json";
 import { ChamberChat } from "@/components/dashboard/ChamberChat";
 import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
-import Link from "next/link";
 
 export default function TeamHub() {
   const [loading, setLoading] = useState(true);
@@ -46,7 +45,7 @@ export default function TeamHub() {
       if (meJson?.success) setUser(meJson.data);
       if (chamberJson?.success) setChamber(chamberJson.data);
       if (inviteJson?.success) setInvites(inviteJson.data);
-    } catch (err) {
+    } catch {
       setError("Failed to synchronize team data.");
     } finally {
       setLoading(false);
@@ -359,7 +358,7 @@ export default function TeamHub() {
                 </div>
               </div>
 
-              <ChamberChat chamberId={chamber.id} />
+              <ChamberChat />
             </div>
 
             {/* RIGHT COLUMN: Invites Status */}

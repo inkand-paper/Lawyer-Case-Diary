@@ -12,7 +12,8 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
     const payment = await deletePayment(user.id, user.chamberId, caseId, paymentId);
     return successResponse(payment, "Payment record removed from registry.");
-  } catch (error: any) {
-    return apiErrors.SERVER_ERROR(error.message || "Failed to remove payment record.", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to remove payment record.";
+    return apiErrors.SERVER_ERROR(message, error);
   }
 }

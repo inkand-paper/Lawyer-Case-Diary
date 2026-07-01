@@ -23,7 +23,8 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     const note = await createNote(user.id, user.chamberId, caseId, validation.data.content);
     return successResponse(note, "Case note recorded successfully.", 201);
-  } catch (error: any) {
-    return apiErrors.SERVER_ERROR(error.message || "Failed to record case note.", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to record case note.";
+    return apiErrors.SERVER_ERROR(message, error);
   }
 }

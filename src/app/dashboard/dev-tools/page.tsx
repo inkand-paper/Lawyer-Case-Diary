@@ -5,11 +5,9 @@ import {
   Zap, 
   Terminal, 
   RefreshCcw, 
-  Search, 
   ShieldCheck,
   History,
   CheckCircle2,
-  AlertCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 

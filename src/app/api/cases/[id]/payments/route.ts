@@ -25,7 +25,8 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     const payment = await createPayment(user.id, user.chamberId, caseId, validation.data);
     return successResponse(payment, "Payment recorded successfully.", 201);
-  } catch (error: any) {
-    return apiErrors.SERVER_ERROR(error.message || "Failed to record payment.", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to record payment.";
+    return apiErrors.SERVER_ERROR(message, error);
   }
 }

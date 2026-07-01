@@ -59,8 +59,10 @@ export async function PUT(req: Request, { params }: RouteParams) {
 }
 
 /**
- * DELETE Handler: Permanent Case Removal
- * Irreversibly removes a case from the legal registry.
+ * DELETE Handler: Case Deactivation
+ * Soft-deletes a case by marking it CLOSED. Case records are never
+ * hard-deleted, per the retention policy enforced by case.service.ts —
+ * legal history must remain recoverable.
  */
 export async function DELETE(_req: Request, { params }: RouteParams) {
   const user = await getAuthContext();
@@ -68,11 +70,11 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
 
   const { id } = await params;
   try {
-    const deletedCase = await deleteCase(user.id, user.chamberId, id);
-    return successResponse(deletedCase, "Case permanently removed from the legal registry.");
+    const closedCase = await deleteCase(user.id, user.chamberId, id);
+    return successResponse(closedCase, "Case closed and archived. It remains accessible in your records.");
   } catch (error: unknown) {
     const err = error as { message?: string; code?: string };
     if (err.code === "P2025") return apiErrors.NOT_FOUND("Case record not found or not authorized.");
-    return apiErrors.SERVER_ERROR("Failed to remove case record.", error);
+    return apiErrors.SERVER_ERROR("Failed to close case record.", error);
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Crown, Star, Zap, ArrowRight, ShieldCheck, Gavel, Scale } from "lucide-react";
+import { CheckCircle2, Crown, Star, Zap, ArrowRight, ShieldCheck, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 

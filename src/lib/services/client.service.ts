@@ -1,5 +1,6 @@
 import db from "@/lib/db";
 import { revalidateTags } from "@/lib/optimizer";
+import { logger } from "./logger.service";
 
 /**
  * Professional Client Management Service
@@ -69,5 +70,8 @@ export const updateClient = async (userId: string, chamberId: string | null, cli
  */
 export const deleteClient = async (userId: string, clientId: string) => {
   // Enforcing Backend Spec: Never hard-delete clients.
+  // Still log who attempted it — a blocked-deletion attempt on a legal
+  // record is worth an audit trail even though the operation is denied.
+  logger.warn("Blocked hard-delete attempt on client record", { userId, clientId });
   throw new Error("Hard deleting clients is prohibited by system policy. Please retain the client record for legal compliance and close their associated cases instead.");
 };

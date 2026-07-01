@@ -25,7 +25,7 @@ export async function validateRequest<T>(
     }
 
     return { success: true, data: result.data };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Invalid JSON payload provided." };
   }
 }

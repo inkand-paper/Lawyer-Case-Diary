@@ -47,6 +47,27 @@ export interface Case {
   createdAt: string | Date;
   updatedAt: string | Date;
   hearings?: Hearing[];
+  notes?: Note[];
+  payments?: Payment[];
+}
+
+export interface Note {
+  id: string;
+  caseId: string;
+  content: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface Payment {
+  id: string;
+  caseId: string;
+  amount: number;
+  paymentDate: string | Date;
+  method?: string | null;
+  status: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface Hearing {

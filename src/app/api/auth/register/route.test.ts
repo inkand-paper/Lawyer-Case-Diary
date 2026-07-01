@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 import db from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
+import type { User } from "@/lib/types";
 
 // Mock out our database and auth services
 vi.mock("@/lib/db", () => ({
@@ -20,6 +21,12 @@ vi.mock("@/lib/auth", () => ({
   hashPassword: vi.fn(),
   signToken: vi.fn(),
 }));
+
+// The route only reads id/name/email off the returned user; mocks only need
+// to satisfy that subset. Cast through `unknown` (not `any`) since the real
+// Prisma User type has many more required fields than these fixtures need.
+type MockUser = Pick<User, "id" | "name" | "email">;
+const asUser = (u: MockUser): User => u as unknown as User;
 
 describe("POST /api/auth/register", () => {
   beforeEach(() => {
@@ -41,10 +48,11 @@ describe("POST /api/auth/register", () => {
   });
 
   it("returns BAD_REQUEST if email is already taken", async () => {
-    vi.mocked(db.user.findUnique).mockResolvedValueOnce({
+    vi.mocked(db.user.findUnique).mockResolvedValueOnce(asUser({
       id: "1",
+      name: "Existing User",
       email: "test@example.com",
-    } as any);
+    }));
 
     const req = new Request("http://localhost/api/auth/register", {
       method: "POST",
@@ -66,11 +74,11 @@ describe("POST /api/auth/register", () => {
   it("creates user securely and returns 201 Created on success", async () => {
     vi.mocked(db.user.findUnique).mockResolvedValueOnce(null);
     vi.mocked(hashPassword).mockResolvedValueOnce("hashed_pwd");
-    vi.mocked(db.user.create).mockResolvedValueOnce({
+    vi.mocked(db.user.create).mockResolvedValueOnce(asUser({
       id: "123",
       name: "John",
       email: "test@example.com",
-    } as any);
+    }));
     vi.mocked(signToken).mockResolvedValueOnce("mock_jwt_token");
 
     const req = new Request("http://localhost/api/auth/register", {

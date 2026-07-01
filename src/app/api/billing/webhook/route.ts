@@ -16,8 +16,7 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
  * Add new price IDs here when you create new plans in the Stripe dashboard.
  */
 function resolvePlanFromSession(session: Stripe.Checkout.Session): string {
-  const priceId =
-    (session as any).line_items?.data?.[0]?.price?.id ?? "";
+  const priceId = session.line_items?.data?.[0]?.price?.id ?? "";
 
   if (priceId === process.env.STRIPE_ULTIMATE_PRICE_ID) return "ULTIMATE";
   if (priceId === process.env.STRIPE_PREMIUM_PRICE_ID) return "EXECUTIVE";

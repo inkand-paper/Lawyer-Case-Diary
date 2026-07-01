@@ -1,30 +1,48 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MessageSquare, Send, Loader2 } from "lucide-react";
 import { fetchJson } from "@/lib/fetch-json";
 
-export function ChamberChat({ chamberId }: { chamberId: string }) {
-  const [messages, setMessages] = useState<any[]>([]);
+interface ChamberMessage {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: { id: string; name: string; role: string };
+}
+
+// chamberId is intentionally not accepted here — the API derives the
+// chamber from the authenticated session, so there's nothing for the
+// caller to pass beyond "render the chat for whichever chamber I'm in."
+export function ChamberChat() {
+  const [messages, setMessages] = useState<ChamberMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [content, setContent] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetchJson<{ success: boolean; data: any[] }>("/api/chambers/messages");
+      const res = await fetchJson<{ success: boolean; data: ChamberMessage[] }>("/api/chambers/messages");
       if (res?.success) setMessages(res.data);
-    } catch {} finally {
+    } catch {
+      // Polling — a single failed refresh isn't worth surfacing an error for.
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchMessages();
+    // Kick off the first fetch outside the render path to avoid the
+    // synchronous setState-during-effect warning; the interval keeps
+    // polling every 5s afterward.
+    const timeout = setTimeout(fetchMessages, 0);
     const interval = setInterval(fetchMessages, 5000); // Polling for MVP
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [fetchMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -36,10 +54,10 @@ export function ChamberChat({ chamberId }: { chamberId: string }) {
     e.preventDefault();
     if (!content.trim()) return;
     setSending(true);
-    const optimisticMessage = {
+    const optimisticMessage: ChamberMessage = {
       id: "temp-" + Date.now(),
       content,
-      user: { name: "You" },
+      user: { id: "temp", name: "You", role: "" },
       createdAt: new Date().toISOString()
     };
     setMessages(prev => [...prev, optimisticMessage]);

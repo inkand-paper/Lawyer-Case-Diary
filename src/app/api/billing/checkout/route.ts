@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/auth-server';
-import db from '@/lib/db';
 import Stripe from 'stripe';
 
 // Provide a dummy key during build-time if the env var is missing

@@ -162,7 +162,7 @@ export function CaseEditorDrawer({
   };
 
   const handleDelete = async () => {
-    if (!caseId || !confirm("Delete this case and all associated history?")) return;
+    if (!caseId || !confirm("Close this case? It will be archived (status set to CLOSED) but the record and its history stay accessible.")) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/cases/${caseId}`, { method: "DELETE" });

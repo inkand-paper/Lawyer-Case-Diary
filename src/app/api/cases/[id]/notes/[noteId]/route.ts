@@ -23,8 +23,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const note = await updateNote(user.id, user.chamberId, caseId, noteId, validation.data.content);
     return successResponse(note, "Case note updated successfully.");
-  } catch (error: any) {
-    return apiErrors.SERVER_ERROR(error.message || "Failed to update case note.", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to update case note.";
+    return apiErrors.SERVER_ERROR(message, error);
   }
 }
 
@@ -36,7 +37,8 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
     const note = await deleteNote(user.id, user.chamberId, caseId, noteId);
     return successResponse(note, "Case note removed from registry.");
-  } catch (error: any) {
-    return apiErrors.SERVER_ERROR(error.message || "Failed to remove case note.", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to remove case note.";
+    return apiErrors.SERVER_ERROR(message, error);
   }
 }

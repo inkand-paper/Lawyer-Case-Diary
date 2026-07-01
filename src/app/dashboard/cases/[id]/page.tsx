@@ -1,50 +1,157 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { 
-  ArrowLeft, 
-  Settings, 
-  MessageSquare, 
-  CreditCard, 
+import { use, useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Settings,
+  MessageSquare,
   Calendar,
   User,
   Scale,
-  Download,
   Share2,
   Trash2,
-  MoreVertical
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CaseTimeline, TimelineItem } from "@/components/dashboard/CaseTimeline";
-import { cn } from "@/lib/utils";
+import { CaseEditorDrawer } from "@/components/dashboard/CaseEditorDrawer";
+import { ChamberShareButton } from "@/components/dashboard/ChamberShareButton";
+import { fetchJson } from "@/lib/fetch-json";
+import { Case } from "@/lib/types";
 
-export default function CaseDetails({ params }: { params: { id: string } }) {
-  // Mock data for the demonstration of the polished UI
-  const caseData = {
-    title: "Capital vs. Miller",
-    caseNumber: "CIV-2026-0041",
-    status: "Active",
-    judge: "Hon. Sarah Vance",
-    court: "Supreme Court of Justice",
-    client: {
-      name: "Johnathan Miller",
-      email: "j.miller@example.com",
-      phone: "+1 (555) 0123-4567"
+function buildTimeline(caseData: Case): TimelineItem[] {
+  const items: TimelineItem[] = [
+    {
+      id: `created-${caseData.id}`,
+      type: "CREATED",
+      title: "Case Formalized",
+      date: new Date(caseData.createdAt).toLocaleDateString(),
+      description: "Case record opened in the registry.",
+      isCompleted: true,
     },
-    timeline: [
-      { id: "1", type: "CREATED", title: "Case Formalized", date: "Jan 12, 2026", description: "All initial documentation filed and judge assigned.", isCompleted: true },
-      { id: "2", type: "HEARING", title: "Preliminary Hearing", date: "Feb 05, 2026", description: "Evidence submission and witness scheduling.", isCompleted: true },
-      { id: "3", type: "PAYMENT", title: "Retainer Processed", date: "Feb 08, 2026", description: "Initial legal fees handled successfully.", isCompleted: true },
-      { id: "4", type: "HEARING", title: "Discovery Phase", date: "Upcoming: Apr 22, 2026", description: "Verification of documentation and cross-examination scheduling.", isCompleted: false },
-    ] as TimelineItem[]
+  ];
+
+  for (const hearing of caseData.hearings ?? []) {
+    const date = new Date(hearing.hearingDate);
+    items.push({
+      id: hearing.id,
+      type: "HEARING",
+      title: "Hearing",
+      date: date.toLocaleDateString(),
+      description: hearing.notes || undefined,
+      isCompleted: date.getTime() < Date.now(),
+    });
+  }
+
+  for (const payment of caseData.payments ?? []) {
+    items.push({
+      id: payment.id,
+      type: "PAYMENT",
+      title: `Payment — ${payment.amount.toLocaleString(undefined, { style: "currency", currency: "USD" })}`,
+      date: new Date(payment.paymentDate).toLocaleDateString(),
+      description: payment.method || undefined,
+      isCompleted: payment.status === "COMPLETED",
+    });
+  }
+
+  for (const note of caseData.notes ?? []) {
+    items.push({
+      id: note.id,
+      type: "NOTE",
+      title: "Note",
+      date: new Date(note.createdAt).toLocaleDateString(),
+      description: note.content,
+      isCompleted: true,
+    });
+  }
+
+  return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+export default function CaseDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+
+  const [caseData, setCaseData] = useState<Case | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const json = await fetchJson<{ success: boolean; data: Case; error?: { message: string } }>(`/api/cases/${id}`);
+      if (json?.success) {
+        setCaseData(json.data);
+      } else {
+        setError(json?.error?.message || "Failed to load case record.");
+      }
+    } catch {
+      setError("Network error — unable to load case.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    // Deferred via setTimeout to avoid the synchronous setState-during-effect
+    // warning (load() sets state immediately on the fast/cached-response path).
+    const timeout = setTimeout(load, 0);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const handleClose = async () => {
+    if (!confirm("Close this case? It will be archived (status set to CLOSED) but the record and its history stay accessible.")) return;
+    setClosing(true);
+    try {
+      const res = await fetch(`/api/cases/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        router.push("/dashboard/cases");
+      } else {
+        setError(json.error?.message || "Failed to close case.");
+      }
+    } catch {
+      setError("Network error — unable to close case.");
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center py-32 gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Recovering Registry File...</p>
+      </div>
+    );
+  }
+
+  if (error || !caseData) {
+    return (
+      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center py-32 gap-6">
+        <AlertCircle className="w-10 h-10 text-red-500" />
+        <p className="text-sm font-bold text-zinc-400">{error || "Case record not found."}</p>
+        <Link href="/dashboard/cases" className="text-xs font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300">
+          Back to Repository
+        </Link>
+      </div>
+    );
+  }
+
+  const timeline = buildTimeline(caseData);
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-24">
       {/* Header Actions */}
       <div className="flex items-center justify-between">
-        <Link 
-          href="/dashboard/cases" 
+        <Link
+          href="/dashboard/cases"
           className="flex items-center gap-3 text-zinc-500 hover:text-white transition-colors group"
         >
           <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5 group-hover:bg-indigo-600 group-hover:text-white transition-all">
@@ -53,13 +160,18 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
           <span className="text-xs font-black uppercase tracking-widest">Back to Repository</span>
         </Link>
         <div className="flex items-center gap-3">
-          <button className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-zinc-500 hover:text-white transition-all">
+          <ChamberShareButton caseId={caseData.id} isShared={!!caseData.chamberId} />
+          <button
+            onClick={() => alert(`Case ID: ${caseData.id}\nCase Number: ${caseData.caseNumber}`)}
+            className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-zinc-500 hover:text-white transition-all"
+            title="Share case reference"
+          >
             <Share2 className="w-4 h-4" />
           </button>
-          <button className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-zinc-500 hover:text-white transition-all">
-            <Download className="w-4 h-4" />
-          </button>
-          <button className="h-12 px-6 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all">
+          <button
+            onClick={() => setEditorOpen(true)}
+            className="h-12 px-6 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all"
+          >
             Edit Details
           </button>
         </div>
@@ -81,9 +193,11 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
             <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none italic">
               {caseData.title}
             </h1>
-            <p className="text-zinc-500 text-lg font-bold leading-relaxed max-w-3xl">
-              Constitutional challenge regarding corporate privacy rights within the digital infrastructure of the northeastern judicial region.
-            </p>
+            {caseData.description && (
+              <p className="text-zinc-500 text-lg font-bold leading-relaxed max-w-3xl">
+                {caseData.description}
+              </p>
+            )}
           </div>
 
           {/* Timeline Section */}
@@ -93,7 +207,11 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
               <Scale className="w-6 h-6 text-indigo-500" />
               Procedural Timeline
             </h3>
-            <CaseTimeline items={caseData.timeline} />
+            {timeline.length <= 1 ? (
+              <p className="text-sm font-bold text-zinc-600">No hearings, payments, or notes recorded yet.</p>
+            ) : (
+              <CaseTimeline items={timeline} />
+            )}
           </div>
         </div>
 
@@ -108,24 +226,34 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
                 <User className="w-8 h-8 text-white" />
               </div>
               <div>
-                <p className="text-xl font-black text-white leading-none">{caseData.client.name}</p>
-                <p className="text-[10px] text-indigo-400 font-black uppercase mt-2 tracking-widest">Verified Client</p>
+                <p className="text-xl font-black text-white leading-none">{caseData.client?.name || "Unspecified Entity"}</p>
+                <p className="text-[10px] text-indigo-400 font-black uppercase mt-2 tracking-widest">Client</p>
               </div>
             </div>
-            <div className="space-y-4 pt-4 border-t border-white/5">
-              <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-zinc-500">Email</span>
-                <span className="text-white underline underline-offset-4 decoration-zinc-800">{caseData.client.email}</span>
+            {(caseData.client?.email || caseData.client?.phone) && (
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                {caseData.client?.email && (
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-zinc-500">Email</span>
+                    <span className="text-white underline underline-offset-4 decoration-zinc-800">{caseData.client.email}</span>
+                  </div>
+                )}
+                {caseData.client?.phone && (
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-zinc-500">Phone</span>
+                    <span className="text-white">{caseData.client.phone}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between items-center text-sm font-bold">
-                <span className="text-zinc-500">Identity</span>
-                <span className="text-white">Passport Secured</span>
-              </div>
-            </div>
-            <button className="w-full h-14 bg-white/[0.03] hover:bg-indigo-600 hover:text-white border border-white/5 rounded-2xl transition-all text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3">
+            )}
+            <a
+              href={caseData.client?.email ? `mailto:${caseData.client.email}` : undefined}
+              className="w-full h-14 bg-white/[0.03] hover:bg-indigo-600 hover:text-white border border-white/5 rounded-2xl transition-all text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3"
+              style={!caseData.client?.email ? { opacity: 0.4, pointerEvents: "none" } : undefined}
+            >
               <MessageSquare className="w-4 h-4" />
               Establish Comms
-            </button>
+            </a>
           </div>
 
           {/* Court Meta */}
@@ -136,25 +264,45 @@ export default function CaseDetails({ params }: { params: { id: string } }) {
                    <div className="p-3 rounded-xl bg-white/5 text-indigo-500"><Settings className="w-4 h-4" /></div>
                    <div>
                       <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Presiding Bench</p>
-                      <p className="text-sm font-black text-white">{caseData.judge}</p>
+                      <p className="text-sm font-black text-white">{caseData.judgeName || "Not yet assigned"}</p>
                    </div>
                 </div>
                 <div className="flex items-start gap-4">
                    <div className="p-3 rounded-xl bg-white/5 text-amber-500"><Calendar className="w-4 h-4" /></div>
                    <div>
-                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Location</p>
-                      <p className="text-sm font-black text-white">{caseData.court}</p>
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Court</p>
+                      <p className="text-sm font-black text-white">{caseData.courtName}</p>
                    </div>
                 </div>
              </div>
           </div>
 
-          <button className="w-full py-6 rounded-3xl text-sm font-black text-zinc-600 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 border border-transparent transition-all flex items-center justify-center gap-3 group">
-            <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            Decommission Case
-          </button>
+          {error && (
+            <p className="text-xs font-bold text-red-500 text-center">{error}</p>
+          )}
+
+          {caseData.status !== "CLOSED" && (
+            <button
+              onClick={handleClose}
+              disabled={closing}
+              className="w-full py-6 rounded-3xl text-sm font-black text-zinc-600 hover:text-red-500 hover:bg-red-500/5 hover:border-red-500/10 border border-transparent transition-all flex items-center justify-center gap-3 group disabled:opacity-50"
+            >
+              {closing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+              Close Case
+            </button>
+          )}
         </div>
       </div>
+
+      <CaseEditorDrawer
+        isOpen={editorOpen}
+        caseId={caseData.id}
+        onClose={() => setEditorOpen(false)}
+        onSuccess={() => {
+          setEditorOpen(false);
+          load();
+        }}
+      />
     </div>
   );
 }

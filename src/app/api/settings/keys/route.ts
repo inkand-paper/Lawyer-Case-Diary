@@ -21,7 +21,7 @@ export async function GET() {
     });
     return successResponse(keys, "Registry keys recovered.");
   } catch (error) {
-    return apiErrors.SERVER_ERROR("Failed to recover registry keys.");
+    return apiErrors.SERVER_ERROR("Failed to recover registry keys.", error);
   }
 }
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const keyData = await generateApiKey(userId, name);
     return successResponse(keyData, "New registry key generated.");
   } catch (error) {
-    return apiErrors.SERVER_ERROR("Key generation failed.");
+    return apiErrors.SERVER_ERROR("Key generation failed.", error);
   }
 }
 
@@ -49,6 +49,6 @@ export async function DELETE(req: Request) {
     await revokeApiKey(userId, id);
     return successResponse(null, "Key revoked.");
   } catch (error) {
-    return apiErrors.SERVER_ERROR("Key revocation failed.");
+    return apiErrors.SERVER_ERROR("Key revocation failed.", error);
   }
 }

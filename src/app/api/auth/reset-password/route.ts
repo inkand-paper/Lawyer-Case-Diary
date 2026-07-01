@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { successResponse, apiErrors } from "@/lib/api-response";
 import bcrypt from "bcryptjs";

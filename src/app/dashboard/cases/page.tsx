@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   Search,
   Plus,
@@ -222,7 +223,7 @@ export default function CasesPage() {
             <table className="w-full text-left">
               <thead>
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
-                  {["Case Profile", "Client", "Judge", "Status", "Actions"].map((h, i) => (
+                  {["Case Profile", "Client", "Judge", "Status", "Actions"].map((h) => (
                     <th key={h} className="px-8 py-5 text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--muted)" }}>
                       {h}
                     </th>
@@ -290,9 +291,15 @@ export default function CasesPage() {
                       </td>
                       <td className="px-8 py-6 text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <button className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]" style={{ color: "var(--muted)" }}>
+                          <Link
+                            href={`/dashboard/cases/${c.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 rounded-xl transition-all hover:bg-[var(--surface-2)]"
+                            style={{ color: "var(--muted)" }}
+                            title="View full case detail"
+                          >
                             <ChevronRight className="w-4 h-4" />
-                          </button>
+                          </Link>
                           <div onClick={(e) => e.stopPropagation()}>
                             <ChamberShareButton caseId={c.id} isShared={!!c.chamberId} />
                           </div>
