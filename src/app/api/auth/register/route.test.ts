@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 import db from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
-import { User } from "@/lib/types";
 
 // Mock out our database and auth services
 vi.mock("@/lib/db", () => ({

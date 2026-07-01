@@ -32,6 +32,16 @@ export async function middleware(req: NextRequest) {
     );
   }
 
+  // Preflight requests must be answered before any auth check runs — an
+  // OPTIONS request never carries cookies/Authorization the way the real
+  // request will, so it always fell into the 401 branch below and the
+  // browser aborted the actual request. This is what broke cross-origin
+  // calls (e.g. from a separately-hosted frontend or the Android app's
+  // WebView) even though CORS headers were configured correctly.
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204, headers: getCorsHeaders(origin) });
+  }
+
   const res = NextResponse.next();
 
   const securityHeaders: Record<string, string> = {

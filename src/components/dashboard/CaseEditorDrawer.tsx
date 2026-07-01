@@ -325,6 +325,23 @@ export function CaseEditorDrawer({
                         <UserIcon className="w-4 h-4" style={{ color: "var(--muted)" }} />
                         <span className="text-sm font-bold">{caseData.client?.name || "Unspecified Entity"}</span>
                       </div>
+                    ) : clients.length === 0 ? (
+                      <div
+                        className="p-6 rounded-2xl space-y-3"
+                        style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.2)" }}
+                      >
+                        <div className="flex items-start gap-3 text-xs font-bold" style={{ color: "#ef4444" }}>
+                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                          You need at least one client before you can create a case.
+                        </div>
+                        <Link
+                          href="/dashboard/clients"
+                          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                          style={{ background: "var(--foreground)", color: "var(--background)" }}
+                        >
+                          <Plus className="w-4 h-4" /> Add a Client First
+                        </Link>
+                      </div>
                     ) : (
                       <div className="relative">
                         <UserIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted)" }} />
@@ -493,8 +510,8 @@ export function CaseEditorDrawer({
                     )}
                     <button
                       type="submit"
-                      disabled={saving}
-                      className="flex-1 h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:opacity-80 transition-all shadow-xl"
+                      disabled={saving || (!caseId && clients.length === 0)}
+                      className="flex-1 h-16 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:opacity-80 transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed"
                       style={{ background: "var(--foreground)", color: "var(--background)" }}
                     >
                       {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-4 h-4" /> Commit Record</>}

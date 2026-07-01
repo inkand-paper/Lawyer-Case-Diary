@@ -11,8 +11,11 @@ export function isOriginAllowed(origin: string | null): boolean {
   // 1. Allow same-site requests (where origin is null)
   if (!origin) return true;
 
-  // 2. Allow official domains
-  return ALLOWED_ORIGINS.some(allowed => origin === allowed || origin.startsWith(allowed));
+  // 2. Allow official domains — exact match only.
+  // NOTE: previously used origin.startsWith(allowed), which let an attacker
+  // pass CORS by hosting on e.g. https://lawyer-case-diary.vercel.app.evil.com
+  // (a valid origin string that merely starts with an allowed one).
+  return ALLOWED_ORIGINS.includes(origin);
 }
 
 export function getCorsHeaders(origin: string | null) {
