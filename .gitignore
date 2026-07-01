@@ -47,3 +47,11 @@ next-env.d.ts
 *.db-journal
 *.sqlite
 *.sqlite-journal
+
+# secrets / local test scripts / data exports — never commit these
+test-db.ts
+src/test-db.ts
+*-export.json
+*_export.json
+ts_errors.log
+ts_errors.txt
