@@ -34,6 +34,12 @@ export async function POST(req: Request) {
     const refreshToken = await createRefreshToken(user.id);
 
     // 4. Response Construction
+    // refreshToken is included in the body (in addition to the httpOnly
+    // cookie below) because native clients — the Android app in particular —
+    // can't read httpOnly cookies. It has no route to obtain a refresh
+    // token otherwise, which meant every mobile session died silently
+    // ~1hr after login with no way to recover. Web clients continue to
+    // rely on the cookie and simply ignore this field.
     const response = successResponse(
       { 
         id: user.id, 
@@ -41,7 +47,8 @@ export async function POST(req: Request) {
         email: user.email, 
         role: user.role,
         plan: user.plan,
-        token: accessToken 
+        token: accessToken,
+        refreshToken,
       },
       "Authentication successful."
     );

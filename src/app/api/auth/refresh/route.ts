@@ -18,8 +18,11 @@ export async function POST() {
   try {
     const { accessToken, refreshToken, user } = await rotateRefreshToken(oldRefreshToken);
 
+    // Same reasoning as login/route.ts: refreshToken must be in the body
+    // for native clients that can't read httpOnly cookies (rotated token
+    // included so the Android app can persist the new one).
     const response = successResponse(
-      { id: user.id, name: user.name, email: user.email, token: accessToken },
+      { id: user.id, name: user.name, email: user.email, token: accessToken, refreshToken },
       "Session synchronized successfully."
     );
 
