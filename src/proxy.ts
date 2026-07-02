@@ -7,7 +7,12 @@ import { getCorsHeaders, isOriginAllowed } from "./lib/cors";
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 /**
- * Global Security & Auth Proxy (Next.js Edge Middleware)
+ * Global Security & Auth Proxy (renamed from middleware.ts in Next.js 16)
+ *
+ * NOTE: proxy.ts runs on the Node.js runtime by default (not Edge, unlike
+ * the old middleware.ts convention), and the runtime isn't configurable
+ * here. jose's jwtVerify works fine on either, so no code changes were
+ * needed for this migration — see https://nextjs.org/docs/messages/middleware-to-proxy
  *
  * Rate limiting: JWT-verified via edge, but rate limit reads come from DB.
  * NOTE: The DB-backed rate limiter (ratelimit.ts) cannot run on the Edge Runtime.
@@ -19,7 +24,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
  * therefore did nothing in production. It has been removed.
  */
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const origin = req.headers.get("origin");
 
