@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { successResponse, apiErrors } from "@/lib/api-response";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const { email, code } = await req.json();
 
     if (!email || !code) {
-      return NextResponse.json({ error: "Missing email or verification code" }, { status: 400 });
+      return apiErrors.BAD_REQUEST("Missing email or verification code.");
     }
 
     // 1. Find user with this email
@@ -25,14 +25,11 @@ export async function POST(req: Request) {
       user?.verificationTokenExpiry != null && user.verificationTokenExpiry > now;
 
     if (!user || !tokenValid || !notExpired) {
-      return NextResponse.json(
-        { error: "Invalid or expired verification code. Please request a new one." },
-        { status: 400 }
-      );
+      return apiErrors.BAD_REQUEST("Invalid or expired verification code. Please request a new one.");
     }
 
     if (user.emailVerified) {
-      return NextResponse.json({ success: true, message: "Email is already verified." });
+      return successResponse(null, "Email is already verified.");
     }
 
     // 3. Activate Account — clear token on success
@@ -45,9 +42,8 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, message: "Account successfully verified." });
+    return successResponse(null, "Account successfully verified.");
   } catch (error) {
-    console.error("❌ Verification fatal error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return apiErrors.SERVER_ERROR("Failed to verify account.", error);
   }
 }
