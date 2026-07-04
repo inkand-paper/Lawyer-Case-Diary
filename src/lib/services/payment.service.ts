@@ -12,7 +12,7 @@ export const createPayment = async (
   userId: string,
   chamberId: string | null,
   caseId: string,
-  data: { amount: number; method?: string; notes?: string }
+  data: { amount: number; method?: string }
 ) => {
   // Verify case ownership/access
   const caseRecord = await db.case.findFirst({

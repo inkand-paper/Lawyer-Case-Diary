@@ -5,8 +5,12 @@ import { z } from "zod";
 
 const paymentSchema = z.object({
   amount: z.number().positive("Amount must be a positive number."),
-  method: z.string().optional(),
-  notes: z.string().optional()
+  method: z.string().optional()
+  // NOTE: a `notes` field used to be accepted here but was never persisted —
+  // createPayment() never wrote it to the DB (Payment has no notes column).
+  // Removed rather than silently discarding user input; no frontend (web or
+  // Android) exposes a notes field for payments yet, so nothing depended on
+  // it actually working.
 });
 
 type RouteParams = { params: Promise<{ id: string }> };
