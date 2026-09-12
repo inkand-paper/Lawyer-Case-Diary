@@ -7,7 +7,14 @@ not aspirational. It supersedes `docs/API_USAGE_GUIDE.md` and
 architecture that no longer match what's actually built; consider those two
 files deprecated.
 
-**Base URL**: `https://lawyer-case-diary.vercel.app`
+**Base URL**: `https://lawyer-case-diary.vercel.app` — confirmed live and
+matches the hardcoded value in the Android app's `RetrofitClient.kt`.
+
+**Quick sanity check before debugging anything else**: `GET
+/api/health` (see the Health section near the bottom) needs no auth and
+confirms the deployment is actually reachable — useful as your first call
+from a fresh Android build before chasing auth or CORS issues that might
+just be a dead connection.
 
 ## Authentication
 
