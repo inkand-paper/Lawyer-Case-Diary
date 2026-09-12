@@ -65,7 +65,11 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
 /**
  * DELETE Handler: Client Registry Removal
- * Permanently removes the client from the professional directory.
+ * Hard-deleting a client is prohibited by system policy (legal compliance
+ * requires retaining the record) — deleteClient() always throws to enforce
+ * this. That error has no Prisma .code, so it always fell through to a
+ * generic 500 SERVER_ERROR here, hiding the actual reason. Now surfaced as
+ * a 403 with the real policy message instead.
  */
 export async function DELETE(_req: Request, { params }: RouteParams) {
   const user = await getAuthContext();
@@ -78,6 +82,9 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   } catch (error: unknown) {
     const err = error as { message?: string; code?: string };
     if (err.code === "P2025") return apiErrors.NOT_FOUND("Client record not found or not authorized.");
+    if (err.message?.includes("prohibited by system policy")) {
+      return apiErrors.FORBIDDEN(err.message);
+    }
     return apiErrors.SERVER_ERROR("Failed to remove client record.", error);
   }
 }
