@@ -1,5 +1,10 @@
 # 📱 Android Integration Guide (Kotlin + Retrofit)
 
+> **Deprecated.** This document is stale and describes endpoints/an architecture
+> that no longer match what's actually built. See [`API_DOCUMENTATION.md`](../API_DOCUMENTATION.md)
+> at the repo root for the current, verified API reference.
+
+
 This guide provides the elite architectural pattern for connecting your Android mobile application to the **Lawyer Case Diary** production backend.
 
 ---

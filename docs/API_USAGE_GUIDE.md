@@ -1,5 +1,10 @@
 # Lawyer Case Diary — API Usage Guide
 
+> **Deprecated.** This document is stale and describes endpoints/an architecture
+> that no longer match what's actually built. See [`API_DOCUMENTATION.md`](../API_DOCUMENTATION.md)
+> at the repo root for the current, verified API reference.
+
+
 > All endpoints require authentication via an `httpOnly` session cookie (`token`).  
 > Obtain a token by calling `POST /api/auth/login`, then all subsequent requests from the browser will be automatically authenticated.  
 > For server-to-server testing with `curl`, use `-c cookies.txt` to persist and `-b cookies.txt` to send the cookie.
